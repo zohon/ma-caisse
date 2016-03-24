@@ -1,0 +1,186 @@
+<!--
+@license
+Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+
+<link rel="import" href="../../bower_components/firebase-element/firebase.html">
+<link rel="import" href="../../bower_components/neon-animation/animations/fade-in-animation.html">
+<link rel="import" href="../../bower_components/neon-animation/animations/fade-out-animation.html">
+<link rel="import" href="../../bower_components/paper-dialog/paper-dialog.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/paper-card/paper-card.html">
+<link rel="import" href="../../bower_components/paper-spinner/paper-spinner.html">
+
+<dom-module id="user-view">
+
+  <template>
+
+    <style>
+      paper-dialog {
+        padding: 5px;
+
+      }
+
+      .loadingInfo {
+        text-align: center;
+      }
+
+      .errorMessage {
+        background: var(--alert-background);
+        color: var(--alert-color);
+        padding: 5px;
+        box-shadow: 0 1px 1px 0px #aaa;
+      }
+
+      .infoMessage {
+        background: var(--valid-background);
+        color: var(--valid-color);
+        padding: 5px;
+        box-shadow: 0 1px 1px 0px #aaa;
+      }
+
+      paper-card {
+        width: 100%;
+        background: #FFF;
+        --paper-card-header: {
+          background : var(--accent-color);
+          color: var(--accent-text-color);
+        }
+        --paper-card-header-color: var(--accent-text-color); 
+      }
+
+      .card-actions {
+        color: var(--accent-color);
+      }
+
+    </style>
+
+
+      <paper-card heading="Change password" class="cyan">
+        <div class="card-content">
+          <div hidden="{{!messageInfo}}" class="infoMessage" >{{messageInfo}}</div>        
+          <div hidden="{{!errorMessage}}" class="errorMessage">{{errorMessage}}</div>
+
+          <paper-input required on-tap="_dontListen" value="{{user.password.email}}" on-keydown="_checkKey" class="short" label="Email" ></paper-input>
+          <paper-input required type="password" on-tap="_dontListen" value="{{oldPassword}}" on-keydown="_checkKey" class="short" label="Old Password" ></paper-input>
+          <paper-input required type="password" on-tap="_dontListen" value="{{newPassword}}" on-keydown="_checkKey" class="short" label="New Password" ></paper-input>
+        </div>
+        <div class="card-actions" on-click="submit">
+          <div hidden="{{!status}}" class="loadingInfo">
+            <paper-spinner active></paper-spinner>
+          </div>
+
+          <div hidden="{{status}}" style="padding: 10px 0;">
+            Submit
+          </div>
+
+        </div>
+      </paper-card>
+            
+      <br><br>
+      <paper-button raised on-click="logout"><paper-icon icon="icons:power-settings-new"></paper-icon>  Disconnect</paper-button>
+
+  </template>
+  <script>
+    Polymer({
+      is: 'user-view',
+      properties: {
+        status : {
+          value :""
+        },
+        errorMessage : {
+          value :""
+        },
+        messageInfo : {
+          value :""
+        },
+        user: {
+          notify: true
+        },
+        location: {
+          notify: true,
+          observer : 'initFirebase',
+        },        
+      },
+      _dontListen : function() {
+
+      },
+      _checkKey: function(e) {
+        this.set('errorMessage', "");        
+        if (e.keyCode === 13) {
+          this.submit();
+        }
+      },
+      initFirebase : function() {
+        console.log("user-view initFirebase");
+        console.log(this.location);
+        var ref =  new Firebase(this.location);
+        this.set('ref', ref);
+      },
+      _getClass : function(data) {
+        return data;
+      },
+      submit : function() {
+
+        var valid = true;
+        this.set('errorMessage', "");
+
+        _.each($(this).find('paper-input'), function(target) {
+          if(!target.validate()) {
+            valid = false;
+          }
+        });
+
+        if(valid) {
+          this.set('status', 'loading');
+
+          this.ref.changePassword({
+            email       : this.user.password.email,
+            oldPassword : this.oldPassword,
+            newPassword : this.newPassword
+          }, function(error) {
+            if (error === null) {
+              console.log("Password changed successfully");
+              this.set('messageInfo', "Password changed successfully");
+
+              setTimeout(function() {
+                this.set('messageInfo', "");
+              }.bind(this), 2000);
+
+            } else {
+              console.log("Error changing password:", error);
+              this.set('errorMessage', error.message);              
+            }
+            this.set('status', '');
+          }.bind(this));
+
+        }
+
+      },
+      checkAuth : function() {
+
+        var authData = this.ref.getAuth();
+        if (authData) {
+          console.log("User " + authData.uid + " is logged in with " + authData.provider);
+          this.fire('login', {user: authData});
+        } else {
+          console.log("User is logged out");
+        }
+
+      },
+      logout : function() {
+        this.ref.unauth();
+        this.fire('logout');
+      },
+      signOut: function() {
+        this.user = null;
+      }
+    });
+  </script>
+</dom-module>

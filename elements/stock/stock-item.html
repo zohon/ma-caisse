@@ -1,0 +1,530 @@
+<!--
+@license
+Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+
+<dom-module id="stock-item">
+
+  <template>
+
+
+  <style is="custom-style">
+
+    :host {
+      font-family: Roboto, Helvetica, Arial, sans-serif;
+      display: block; 
+      background: #FFF;
+
+      -webkit-user-select: none; /* Chrome/Safari */        
+      -moz-user-select: none; /* Firefox */
+      -ms-user-select: none; /* IE10+ */
+      /* Rules below not implemented in browsers yet */
+      -o-user-select: none;
+      user-select: none;
+      transition: all 0.2s ease;
+    }
+
+    :host:hover {
+      box-shadow: 0px 4px 4px 0px rgba(0,0,0,0.2);
+    }
+
+    paper-icon-item .avatar {
+      background: var(--light-primary-color);
+    }
+
+    paper-icon-item .avatar {
+      display: inline-block;
+      width: 40px;
+      height: 40px;
+      bstock-radius: 50%;
+      overflow: hidden;
+      background: #ccc;
+      line-height: 40px;
+      text-align: center;
+      text-transform: uppercase;
+      color:#FFF;
+      font-size: 20px;
+      transition : all 0.4s ease;
+    }
+    .active paper-icon-item .avatar {
+        background: var(--accent-color);
+    }
+    .delete {
+        position: absolute;
+        top:10px;
+        left:-45px;
+        display: inline-block;
+        width: 40px;
+        height: 40px;
+        bstock-radius: 50%;
+        overflow: hidden;
+        background: var(--alert-background);
+        line-height: 35px;
+        text-align: center;
+        text-transform: uppercase;
+        color: var(--alert-color);
+        font-size: 20px;
+        z-index: 90;
+        box-shadow: 0 1px 5px rgba(0,0,0,0.23),0 1px 0px rgba(0,0,0,0.16);
+    }
+
+    .edit {
+        position: absolute;
+        top:10px;
+        right:-45px;
+        display: inline-block;
+        width: 40px;
+        height: 40px;
+        bstock-radius: 50%;
+        overflow: hidden;
+        background: var(--default-primary-color);
+        line-height: 35px;
+        text-align: center;
+        text-transform: uppercase;
+        transition: all 0.2s ease;
+        color: var(--alert-color);
+        font-size: 20px;
+        z-index: 0;
+        box-shadow: 0 1px 5px rgba(0,0,0,0.23),0 1px 0px rgba(0,0,0,0.16);
+    }
+    
+    .active .edit {
+     /* right : 10px;*/
+    }
+
+    .select {
+        position: absolute;
+        top:10px;
+        left:-45px;
+        display: inline-block;
+        width: 40px;
+        height: 40px;
+        bstock-radius: 50%;
+        overflow: hidden;
+        background: var(--accent-color);
+        line-height: 35px;
+        text-align: center;
+        text-transform: uppercase;
+        transition: all 0.2s ease;
+        color: var(--alert-color);
+        font-size: 20px;
+        z-index: 0;
+        box-shadow: 0 1px 5px rgba(0,0,0,0.23),0 1px 0px rgba(0,0,0,0.16);
+    }   
+
+    .select:hover {
+        background: var(--valid-background);
+        color: var(--valid-color);
+    }
+    
+    .active .select {
+      left : 10px;
+    }    
+
+    paper-icon-item {
+      position: relative;
+      margin: 0 ;
+      padding: 10px 10px;
+      display: flex;
+      text-decoration: none;
+      overflow: hidden;
+    }
+
+    .person {
+      box-shadow: 0 0px 2px rgba(0,0,0,0.16),0 0px 2px rgba(0,0,0,0.08);
+    }
+
+    .active .person {
+      box-shadow: 0 1px 5px rgba(0,0,0,0.23),0 1px 0px rgba(0,0,0,0.16);
+    }
+
+
+    :focus {
+      outline: none;
+    }
+
+    paper-icon-item .avatar{
+        display: block;
+        float:left;
+        margin-right: 10px;
+    }
+
+    paper-icon-item paper-item-body {
+        display: block;
+        float:left;
+        max-width: 80%;
+    }
+
+    paper-icon-item .total {
+        position: absolute;
+        right: 5px;
+        top: 0;
+        height: 40px;
+        line-height: 65px;
+        font-size: 25px;     
+    }
+
+    .person {
+      cursor: pointer;
+      transition: all 0.5s ease;
+    }
+
+      paper-icon-item .secondary {
+        color: var(--secondary-text-color);
+        font-size: 13px;
+      }
+
+      paper-icon-item .total {
+        color: var(--accent-color);
+      }
+
+      .name {
+        text-transform: capitalize;
+      }
+
+      .details {
+          display: block;
+          overflow: hidden;
+      }
+
+      paper-ripple {
+        color: var(--primary-background-color);
+      }
+
+      .inputlabel {
+
+      }
+
+      paper-input {
+        margin-right: 10px;
+      }
+
+      .editing {
+        padding: 15px;
+        background: #FFF;
+      }
+
+      .customers {
+        position: absolute;
+        right:15px;
+        top:0;
+        line-height: 60px;
+      }
+
+      .secondary div {
+        display: inline-block;
+      }
+
+    </style>
+    
+  <div class$="[[_getClass(active, 'content')]]" class="content">
+
+    <paper-icon-item tabindex="0" class="person" on-tap="onTap"  on-track="handleTrack" >
+
+        <div class="avatar" item-icon>{{_getAvatar(stock.label)}}</div>
+
+          <paper-item-body two-line>
+            <div class="name">{{stock.label}}</div>
+            <div secondary class="secondary"><span>{{stock.nb}}</span>&nbsp;/&nbsp;<span>{{stock.nbMax}}</span></div>
+          </paper-item-body>
+
+          <div class="customers" ><span>{{stock.nb}}</span>&nbsp;/&nbsp;<span>{{stock.nbMax}}</span></div>
+
+      <div class="delete" item-icon><iron-icon icon="icons:delete"></iron-icon><paper-ripple></paper-ripple></div>
+
+    </paper-icon-item>
+
+    <div class="editing" hidden="{{!edit}}">
+
+        <paper-input on-tap="_dontListen" value="{{stock.label}}" on-keydown="_checkKey" class="short" label="label" ></paper-input>
+
+        <paper-input on-tap="_dontListen" type="number" value="{{stock.nb}}" on-keydown="_checkKey" class="short inputlabel" label="nombre en stock" ></paper-input>
+
+        <paper-input on-tap="_dontListen" type="number" value="{{stock.nbMax}}" on-keydown="_checkKey" class="short inputlabel" label="nombre max" ></paper-input>
+
+    </div>
+
+  </div>
+
+  </template>
+  <script>
+    Polymer({
+
+      is: 'stock-item',
+
+      properties: {
+        stock: {
+          type : Object,
+          observer : "observeChange"
+        },        
+        edit : {
+          type : Boolean,
+          value: false,
+        }
+      },
+      ready : function() {
+        this.setScrollDirection('y', $(this).find('paper-icon-item').get(0));
+      }, 
+      _getquery : function(label, adress) {
+        return label+" "+adress;
+      },
+      observeChange : function(datas) {
+
+        console.log("observeChange");
+
+        if(this.stock) {
+
+          if(this.stock.creationDate) {
+            var diffDate = new Date().getTime() - this.stock.creationDate;
+          
+            if(!this.stock.label && diffDate < 1000 ) {
+
+              setTimeout(_.bind(function() {
+                if(!this.stock.label) {
+                  this._selectEdit();
+                }
+              },this), 100);
+
+            }
+
+          }
+
+        }
+
+      },      
+      onTap : function() {
+        if(this.stock.label) {
+          if(this.active) {
+            this.desactivate();
+          } else {
+            this.activate();
+            this._selectEdit();
+          }
+        }
+      },      
+      activate : function() {
+        this.set('active', 'active');
+        this.fire('activate', {stock : this.stock});
+      },
+      desactivate : function() {       
+        this.set('active', false);
+        this.set('edit', false);
+        this.fire('desactivate', {stock : this.stock});
+      },
+      select : function(e) {
+        if(e) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+
+
+      },
+      _getClass : function(target, others) {
+
+        if(target) {
+          return target+" "+others;
+        } else {
+          return others;
+        }
+
+      },
+      _dontListen : function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+      },
+      _selectEdit : function(e) {
+        if(e) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+
+        if(this.edit) {
+          this.edit = false;
+        } else {
+          this.edit = true;
+          $(this).find('paper-input input').get(0).focus();
+        }
+
+      },
+      _getAvatar : function(name) {
+        if(name) {
+
+          var hash  = 0;
+          for (var i = 0; i < name.length; i++) {
+             hash  = name.charCodeAt(i) + ((hash  << 5) - hash );
+          }
+
+          var c = (hash & 0x00FFFFFF).toString(16).toUpperCase();
+          var color =  "00000".substring(0, 6 - c.length) + c;
+          this.colorAvatar = "#"+color;
+          $(this).find('paper-icon-item .avatar').css('background', this.colorAvatar);
+    
+          return name.charAt(0);
+        }
+      },
+      _checkKey: function(e) {
+        if (e.keyCode === 13) {
+          this.desactivate();
+        }
+      },
+      _onDelete: function() {
+        this.fire('delete-stock', {stock: this.stock});
+      },
+
+      handleTrack: function(e) {
+
+        if(!this.trackInfo) {
+            this.trackInfo = {};
+        }
+
+        var message;
+
+        switch(e.detail.state) {
+          case 'start':
+            message = 'Tracking started!';
+
+            this.trackInfo.start = {
+              x : e.detail.x,
+              y : e.detail.y,
+            };
+
+            break;
+          case 'track':
+            message = 'Tracking in progress... ' +
+              e.detail.x + ', ' + e.detail.y;
+            this.trackInfo.progress = {
+              x : e.detail.x,
+              y : e.detail.y,
+            };
+
+            break;
+          case 'end':
+            message = 'Tracking ended!';
+            this.trackInfo.end = {
+              x : e.detail.x,
+              y : e.detail.y,
+            };
+
+
+            break;
+        }
+
+        this.calcTrack(e);
+
+      },
+      calcTrack : function(e) {
+
+        if(this.onDestroy) {
+          return false;
+        }
+
+        if(this.trackInfo && this.trackInfo.start && this.trackInfo.progress) {
+
+
+          var diffY = Math.abs(this.trackInfo.progress.y - this.trackInfo.start.y);
+          var diffX = Math.abs(this.trackInfo.progress.x - this.trackInfo.start.x);
+
+          if(diffY < diffX) {
+
+            if(this.trackInfo.start.x > this.trackInfo.progress.x) {
+
+              var percent = diffX/$(this).width();
+              var left = (150*percent);
+
+              if(left > 10) {
+                left = 10;
+              }
+              if(!this.edit) {
+                $(this).find('.edit').css({
+                  right : left+"px",
+                  transition : "height 0.5s ease"                
+                });
+
+                if(diffX > 50) {
+                  this._selectEdit();
+                }
+              }
+
+            } else if(this.trackInfo.start.x < this.trackInfo.progress.x) {
+
+              var percent = diffX/$(this).width();
+              var left = -50+(150*percent);
+
+              if(left > 10) {
+                left = 10;
+              }
+
+              $(this).find('.delete').css({
+                left : left+"px",
+                transition : "height 0.5s ease"
+              });
+
+              if(diffX > $(this).width()/2) {
+                this.destroy();
+              }
+            }
+
+          } else {
+
+            if(this.trackInfo.start.y > this.trackInfo.progress.y) {
+              /*
+                $(this).css({
+                  'margin-top' : diffY,
+                });   
+              */ 
+              if(diffY > 100) {
+                console.log('slide top');                
+              }
+            } else if(this.trackInfo.start.y < this.trackInfo.progress.y) {
+/*
+                $(this).css({
+                  'margin-bottom' : diffY,
+                });
+*/
+              if(diffY > 100) {
+                console.log('slide bottom');
+              }
+            }
+
+          }
+        }
+
+        if(e.detail.state == 'end' && !this.onDestroy) {
+            this.trackInfo = {};
+            $(this).find('.delete').css({
+                left : "-45px",
+                transition : "all 0.5s ease"
+            });
+        }
+
+      },
+
+      destroy : function(direction) {
+
+        if(!this.onDestroy) {
+
+          this.onDestroy = true;
+
+            $(this).css({
+              opacity : 0,
+              transition : "all 0.3s ease-out"
+            });
+
+
+          var that = this;
+          setTimeout(_.bind(function() {
+            this.fire('delete', {stock : this.stock});
+            $(this).remove();
+          },this), 300);
+        }
+
+      },
+    });
+  </script>
+</dom-module>

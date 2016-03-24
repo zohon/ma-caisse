@@ -1,0 +1,72 @@
+<!--
+@license
+Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+<link rel="import" href="../../bower_components/paper-fab/paper-fab.html">
+<link rel="import" href="product-list.html">
+
+<dom-module id="product-view">
+
+  <template>
+
+    <style>
+      :host {
+        display: block;
+        -webkit-user-select: none; /* Chrome/Safari */        
+        -moz-user-select: none; /* Firefox */
+        -ms-user-select: none; /* IE10+ */
+        /* Rules below not implemented in browsers yet */
+        -o-user-select: none;
+        user-select: none;
+              
+      }
+      paper-fab {
+          position: fixed;
+          bottom:15px;
+          right:15px;
+      }
+
+      paper-item {
+        background: var(--accent-color);
+        color: var(--text-primary-color);
+        cursor: pointer;
+        margin-bottom: 5px;
+      }
+
+    </style>
+
+    <paper-item on-click="add" hidden="{{activate}}">
+      <paper-item-body two-line>
+        <div>Create an product</div>
+        <div secondary></div>
+      </paper-item-body>
+      <paper-ripple></paper-ripple>
+    </paper-item>
+
+    <product-list products="{{products}}" filter-by="{{route}}" affichage="{{affichage}}" on-delete="delete"></product-list>
+    
+  </template>
+  <script>
+    Polymer({
+      is: 'product-view',
+      properties: {
+        products: Array,
+        route: String,
+      },
+      add: function(e) {
+        this.push('products', {
+          label: "",
+          creationDate : new Date().getTime(),
+        });
+      },
+      delete: function(e) {
+        this.arrayDelete('products', e.detail.product);
+      },
+    });
+  </script>
+</dom-module>

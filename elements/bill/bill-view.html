@@ -1,0 +1,168 @@
+<!--
+@license
+Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+<link rel="import" href="../../bower_components/paper-fab/paper-fab.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+
+<dom-module id="bill-view">
+
+  <template>
+
+    <style>
+      :host {
+        display: block;
+        -webkit-user-select: none; /* Chrome/Safari */        
+        -moz-user-select: none; /* Firefox */
+        -ms-user-select: none; /* IE10+ */
+        /* Rules below not implemented in browsers yet */
+        -o-user-select: none;
+        user-select: none;
+              
+      }
+      paper-fab {
+      }
+
+      paper-item {
+        background: var(--accent-color);
+        color: var(--text-primary-color);
+        cursor: pointer;
+        margin-bottom: 5px;
+      }
+
+      .cachet {
+        text-align: center;
+      }
+
+      .infos {
+        display: none;
+        padding: 0 10px;
+      }
+
+      .date {
+        border-bottom: 2px dotted #999;
+        margin-bottom: 10px;
+        padding-bottom: 5px;
+        font-size: 20px;
+      }
+
+      .repas {
+        display: flex;
+        align-items: center;
+        height: 30px;
+        font-size: 20px;
+        margin-bottom: 15px;
+      }
+
+      .ttc {
+        font-size: 18px;
+        margin-bottom: 10px;
+      }
+
+      .action {
+        margin-top: 15px;
+        display: flex;
+        justify-content: flex-end;
+      }
+
+      @media print {
+        .infos {
+          display: block;
+        }
+
+        .cachet {
+          margin : 15px 0;
+        }
+
+        .form {
+          display: none;
+        }
+
+        :host * { visibility: visible; }
+      }
+
+    </style>
+    <div>
+
+      <div class="cachet">
+        <div>{{sarl}}</div>
+        <div>Siren&nbsp;:&nbsp;<span>{{siren}}</span></div>
+        <div>Ape&nbsp;:&nbsp;<span>{{ape}}</span></div>
+        <div>N° TVA Intercommunautaire&nbsp;:&nbsp;<span>{{ntva}}</span></div>
+      </div>
+
+      <div class="infos">
+        <div class="date">Le&nbsp;<span>[[date]]</span></div>
+        <div class="repas">Nombre de repas&nbsp;:&nbsp;<span>[[nbrepas]]</span></div>
+        <div class="ttc">Total prix TTC&nbsp;:&nbsp;<span>[[total]]</span>€</div>
+        <div hidden="{{!tva10}}">Dont TVA à 10%&nbsp;:&nbsp;<span>[[tva10]]</span>€</div>
+        <div hidden="{{!tva20}}">Dont TVA à 20%&nbsp;:&nbsp;<span>[[tva20]]</span>€</div>
+      </div>
+
+      <div class="form">
+        <paper-input on-tap="_dontListen" value="{{date}}" on-keydown="_checkKey" class="short" label="Date" ></paper-input>
+
+        <paper-input on-tap="_dontListen" type="number" value="{{nbrepas}}" on-keydown="_checkKey" class="short" label="Number of meal" ></paper-input>
+
+        <paper-input on-tap="_dontListen" type="number" value="{{total}}" on-keydown="_checkKey" class="short" label="Total" ></paper-input>
+
+        <paper-input on-tap="_dontListen" type="number" value="{{tva10}}" on-keydown="_checkKey" class="short" label="TVA 10%" ></paper-input>
+
+        <paper-input on-tap="_dontListen" type="number" value="{{tva20}}" on-keydown="_checkKey" class="short" label="TVA 20%" ></paper-input>
+
+        <div class="action">
+          <paper-fab icon="icons:print" on-click="print"></paper-fab>
+        </div>
+      </div>
+
+    </div>
+  </template>
+  <script>
+    Polymer({
+      is: 'bill-view',
+      properties: {
+        sarl : {
+          type : String,
+          value : 'SARL BLACK RHINO'
+        },
+        siren : {
+          type : String,
+          value : '804 417 772 RCS Grenoble'
+        },
+        ape  : {
+          type : String,
+          value : '5610 A'
+        },
+        ntva  : {
+          type : String,
+          value : 'RF 28 804417772'
+        }              
+      },
+      ready : function() {
+        var date = new Date();
+        var day = date.getDate();
+        if(day < 10) {
+          day = "0"+day;
+        }        
+        var monthIndex = parseFloat(date.getMonth())+1;
+        if(monthIndex < 10) {
+          monthIndex = "0"+monthIndex;
+        }
+        var year = date.getFullYear();
+        this.set('date', day+"/"+monthIndex+"/"+year);
+      },
+      print : function(e) {
+        if(e) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+        window.print();
+      }
+    });
+  </script>
+</dom-module>

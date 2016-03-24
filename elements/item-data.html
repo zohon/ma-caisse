@@ -1,0 +1,78 @@
+<!--
+@license
+Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+
+<link rel="import" href="../bower_components/firebase-element/firebase-collection.html">
+<link rel="import" href="../bower_components/iron-localstorage/iron-localstorage.html">
+
+<dom-module id="item-data">
+
+  <template>
+
+    <firebase-collection id="theFirebasecollection" location="{{location}}"
+        ref="{{ref}}"
+        data="{{fbItems}}"
+        on-firebase-value="_firebaseLoaded"
+        > <!-- log -->
+    </firebase-collection>
+ 
+    <!-- Backfill items from localstorage. This prevents an initial flash while
+         we're waiting to hear from Firebase, and it lets the user see their
+         old items if they start the app offline.
+         This SHOULD NOT write to Firebase. If the user has cleared their
+         localstorage, it should not nullify everything saved in Firebase. -->
+    <iron-localstorage name="{{location}}" on-iron-localstorage-load="_backupLoaded" value="{{backupItems}}"></iron-localstorage>
+
+  </template>
+  <script>
+    Polymer({
+      is: 'item-data',
+
+      properties: {
+
+        items: {
+          notify: true
+        },
+
+        _firebaseConnected: {
+          value: false
+        },
+
+        name : {
+          value : 'items'
+        }
+      },
+      _firebaseLoaded: function() {
+
+        if(!this._firebaseConnected) {
+          //console.log("_firebaseLoaded "+this.location);
+        }
+
+        this.set('_firebaseConnected', true);
+        this.set('items',this.fbItems);
+        this.set('backupItems', this.fbItems);
+        this.linkPaths('fbItems', 'items');
+        this.linkPaths('backupItems', 'items');
+
+        this.fire('connected'); 
+      },
+      _backupLoaded: function() {
+
+        if (!this._firebaseConnected && this.backupItems) {
+          this.set('items', this.backupItems.slice());         
+          if(!this.offlineItems) {
+            this.set('offlineItems', JSON.stringify(this.items));
+          }
+          this.fire('connected');
+        }
+      }    
+    });
+
+  </script>
+</dom-module>

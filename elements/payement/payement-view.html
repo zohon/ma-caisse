@@ -1,0 +1,410 @@
+<!--
+@license
+Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+<link rel="import" href="../../bower_components/paper-fab/paper-fab.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="payement-list.html">
+
+<dom-module id="payement-view">
+
+  <template>
+
+    <style>
+      :host {
+        display: block;
+        -webkit-user-select: none; /* Chrome/Safari */        
+        -moz-user-select: none; /* Firefox */
+        -ms-user-select: none; /* IE10+ */
+        /* Rules below not implemented in browsers yet */
+        -o-user-select: none;
+        user-select: none;  
+
+      }
+
+      .content {
+        padding: 5px;
+        margin-bottom: 10px;
+        box-shadow: 0 1px 3px -1px;
+        transition: all 0.3s ease;
+      }
+
+      .content.active {
+        box-shadow: 0px 2px 5px -1px;
+      };
+
+      paper-fab {
+          position: fixed;
+          bottom:15px;
+          right:15px;
+      }
+
+      paper-item {
+        background: var(--accent-color);
+        color: var(--text-primary-color);
+        cursor: pointer;
+        margin-bottom: 5px;
+      }
+
+      paper-slider {
+        width:100%;
+        --paper-slider-active-color : var(--accent-color);
+        --paper-slider-knob-color : var(--accent-color);
+        --paper-slider-pin-color: var(--accent-color);
+      }
+
+      .showSchedule {
+        font-size: 25px;
+        color: #FFF;
+        padding:5px 15px;
+        background: var(--accent-color);
+      }
+
+      h2 {
+        font-family: var(--special-font-family) !important;
+        margin: 0;
+        padding: 0 5px;
+        font-size: 45px;
+        text-transform: uppercase;
+        font-weight: lighter;
+        color: var(--default-primary-color);
+        cursor: pointer;
+      }
+
+      h2 .done {
+        color: var(--valid-background);
+        height:35px;
+        width:35px;        
+      }
+
+      .data {
+        border-top: 1px dotted var(--default-primary-color);
+        margin-top: 5px;
+        padding-top: 5px;
+        overflow: hidden;
+      }
+
+      .listPayement {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 5px;
+      }
+
+      .listPayement .text {
+        display: none;
+      }
+
+      .listPayement paper-button{
+        font-size: 13px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 25%;
+      }
+
+      .listInput {
+        opacity: 0;
+        display: flex;
+        justify-content: space-between;
+        height:5px;
+        overflow: hidden;
+      }
+      .listInput paper-input{
+        width:30%;
+      }
+
+      paper-button[active] {
+        background-color: var(--accent-color);
+        color : var(--accent-text-color);
+      }
+
+      .infototal {
+        color: var(--accent-color);
+        margin-right: 5px;
+        font-size: 15px;
+      }
+
+      paper-button[active] .infototal {
+        color: var(--accent-text-color);
+      }
+
+      .infos {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 15px;
+      }
+
+      .total {
+        background: #000;
+        color : #FFF;
+        width: 48px;
+        height: 48px;
+        display: flex;
+        border-radius: 0;
+        overflow: hidden;
+        justify-content: center;
+        align-items: center;
+        text-transform: uppercase;
+        font-size:15px;
+        transition: all 0.4s ease;
+        cursor: pointer;        
+      }
+
+
+      .reste {
+        background: #FE730F;
+        color : #FFF;
+        width: 48px;
+        height: 48px;
+        margin-right: 10px;
+        display: flex;
+        border-radius: 0;
+        overflow: hidden;
+        justify-content: center;
+        align-items: center;
+        text-transform: uppercase;
+        font-size:15px;
+        transition: all 0.4s ease;
+        cursor: pointer;        
+      }
+
+      .encours {
+        color: var(--accent-color);
+        width: 48px;
+        height: 48px;
+        display: flex;
+        border-radius: 0;
+        overflow: hidden;
+        justify-content: center;
+        align-items: center;
+        text-transform: uppercase;
+        font-size: 20px;
+        transition: all 0.4s ease;
+        cursor: pointer;        
+      }
+
+      h2 .schedule {
+        font-family: 'Roboto', 'Noto', sans-serif;
+        font-size: 20px;
+        margin-left: 15px;
+        float:right;
+        padding: 10px 0;
+      }
+
+
+
+    </style>
+
+    <div hidden="{{!order.label}}" class$="{{classinfo(editing, 'content')}}" class="content" >
+      <h2 on-tap="toggle">
+      <iron-icon class="done" icon="icons:check-circle" hidden="{{!_getTotalRestdone(order.list.length, order.*)}}"></iron-icon>
+      <span>{{order.label}}</span><span class="schedule">{{order.schedule}}</span><span></span></h2>
+
+      <div hidden="{{!editing}}" class="data">
+
+        <payement-list payements="{{order.list}}" on-addencour="_addencour" on-removeencour="_removeencour"></payement-list>
+
+        <div hidden="{{order.list.length}}">no command</div>
+
+        <div class="infos" hidden="{{!order.list.length}}">
+          <div class="reste"><span>{{_getTotalRest(order.list.length, order.*)}}</span><span hidden="{{!order.list.length}}" >€</span></div>
+
+          <div class="encours" on-click="resetencours" hidden="{{!encours}}"><span>{{encours}}</span><span hidden="{{!encours}}" >€</span></div>  
+
+          <div class="total" on-click="resetpayement"><span>{{_getTotal(order.list.length, order.*)}}</span><span hidden="{{!order.list.length}}" >€</span></div>  
+        </div>
+
+        <div class="listPayement"  hidden="{{!order.list.length}}">
+          <paper-button raised on-click="selectmoney" id="buttonmoney"><span class="infototal" hidden="{{!order.money}}">{{order.money}}</span><iron-icon icon="editor:attach-money"></iron-icon><span class="text">Money</span></paper-button>
+          <paper-button raised on-click="selectticket" id="buttonticket"><span class="infototal" hidden="{{!order.ticket}}">{{order.ticket}}</span><iron-icon icon="image:style"></iron-icon><span class="text">Ticket</paper-button>
+          <paper-button raised on-click="selectcb" id="buttoncb"><span class="infototal" hidden="{{!order.cb}}">{{order.cb}}</span><iron-icon icon="icons:credit-card"></iron-icon><span class="text">Credit&nbsp;card</span></paper-button>
+          <paper-button raised on-click="selectfree" id="buttonfree"><span class="infototal" hidden="{{!order.free}}">{{order.free}}</span><iron-icon icon="editor:money-off"></iron-icon><span class="text">Free</span></paper-button>
+        </div>
+
+        <div class="listInput">
+          <paper-input type="number" id="inputmoney" value="{{addmoney}}" on-change="addtomoney" class="short" label="money" ></paper-input>
+          <paper-input type="number" id="inputticket" value="{{addticket}}" on-change="addtoticket" class="short" label="ticket" ></paper-input>
+          <paper-input type="number" id="inputcb" value="{{addcb}}" on-change="addtocb" class="short" label="credit card" ></paper-input>
+          <paper-input type="number" id="inputfree" value="{{addfree}}" on-change="addtofree" class="short" label="free" ></paper-input>          
+        </div>
+
+      </div>
+
+    </div>
+  </template>
+  <script>
+    Polymer({
+      is: 'payement-view',
+      properties: {
+        payements: Array,
+        order : {
+          type :Object,
+          observer: 'changeOrder'
+        },
+        editing : false,
+        timer : 0,
+        encours : 0,
+      },
+      ready : function() {
+        this.set('editing', false);
+        this.set('encours', 0);
+      },
+      _addencour : function(e) {
+        console.log("addencour");
+        this.set('encours', parseFloat(this.encours)+parseFloat(e.detail));
+      },      
+      _removeencour : function(e) {
+        console.log("removeencour");
+        this.set('encours', parseFloat(this.encours)-parseFloat(e.detail));        
+      },
+      classinfo : function(editing, classes) {
+        return (editing ? 'active ' : '')+classes;
+      },
+      changeOrder : function() {
+
+      },
+      toggle : function() {
+        if(this.editing) {
+          this.set('editing', false);
+        } else {
+          this.set('editing', true);
+        }
+      },
+      resetpayement : function() {
+        this.set('order.money', 0);
+        this.set('order.ticket', 0);
+        this.set('order.cb', 0);
+        this.set('order.free', 0);
+      },
+      resetencours : function() {
+          this.set('encours', 0);
+      },
+      checkEncours : function(value) {
+
+        if(value > this.encours) {
+          this.set('encours',0);
+        } else {
+          this.set('encours', parseFloat(this.encours)-parseFloat(value));
+        }
+
+      },      
+      addtomoney: function() {
+        var val = 0;
+
+        if(this.order.money) {
+          val = parseFloat(this.order.money)+parseFloat(this.addmoney);
+        } else {
+          val = this.addmoney;
+        }
+
+        this.checkEncours(this.addmoney);
+        this.set('order.money', val);
+        this.set('addmoney', '');
+        $(this).find('paper-button').removeAttr('active');
+
+        $(this).find('paper-button').focus();
+
+      },
+      addtoticket: function() {
+        var val = 0;
+
+        if(this.order.ticket) {
+          val = parseFloat(this.order.ticket)+parseFloat(this.addticket);
+        } else {
+          val = this.addticket;
+        }
+
+        this.checkEncours(this.addticket);
+        this.set('order.ticket', val);
+        this.set('addticket', '');
+        $(this).find('paper-button').removeAttr('active');
+        $(this).find('paper-button').focus();
+      },        
+      addtocb: function() {
+        var val = 0;
+
+        if(this.order.cb) {
+          val = parseFloat(this.order.cb)+parseFloat(this.addcb);
+        } else {
+          val = this.addcb;
+        }
+        this.checkEncours(this.addcb);
+        this.set('order.cb', val);
+        this.set('addcb', '');
+        $(this).find('paper-button').removeAttr('active');
+        $(this).find('paper-button').focus();        
+      },
+      addtofree: function() {
+        var val = 0;
+
+        if(this.order.free) {
+          val = parseFloat(this.order.free)+parseFloat(this.addfree);
+        } else {
+          val = this.addfree;
+        }
+
+        this.checkEncours(this.addfree);
+        this.set('order.free', val);
+        this.set('addfree', '');
+        $(this).find('paper-button').removeAttr('active');
+        $(this).find('paper-button').focus();        
+      },      
+      _getTotalRestdone : function(nborder, order) {
+
+        if(this._getTotalRest(nborder, order) <= 0 ) {
+          return true;
+        } else {
+          return false;
+        }
+
+      },
+      _getTotalRest : function(nborder, order) {
+        var total = this._getTotal();
+
+        var money = (this.order.money ? parseFloat(this.order.money) : 0);
+        var ticket = (this.order.ticket ? parseFloat(this.order.ticket) : 0);
+        var cb = (this.order.cb ? parseFloat(this.order.cb) : 0);
+        var free = (this.order.free ? parseFloat(this.order.free) : 0);        
+        var alreadypayed= money+ticket+cb+free;
+
+        this.fire('payementchange', this.order);
+        return total-alreadypayed;
+      },      
+      _getTotal : function() {
+        var total = 0;
+        
+        if(this.order && this.order.list) {
+          _.each(this.order.list, function(data, index) {
+            total += parseFloat(data.value);
+          });
+          return total;
+        }
+      },
+      selectmoney : function() {
+        $(this).find('#inputmoney').focus();
+        $(this).find('paper-button').removeAttr('active');
+        $(this).find('#buttonmoney').attr('active', true);
+      },      
+      selectcb : function() {
+        $(this).find('#inputcb').focus();
+        $(this).find('paper-button').removeAttr('active');        
+        $(this).find('#buttoncb').attr('active', true);
+      },
+      selectticket : function() {
+        $(this).find('#inputticket').focus();
+        $(this).find('paper-button').removeAttr('active');
+        $(this).find('#buttonticket').attr('active', true);
+      },
+      selectfree : function() {
+        $(this).find('#inputfree').focus();
+        $(this).find('paper-button').removeAttr('active');
+        $(this).find('#buttonfree').attr('active', true);
+      }             
+    });
+  </script>
+</dom-module>

@@ -1,0 +1,706 @@
+<!--
+@license
+Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/neon-animation/neon-animation-runner-behavior.html">
+<link rel="import" href="../../bower_components/neon-animation/animations/scale-up-animation.html">
+<link rel="import" href="../../bower_components/neon-animation/animations/fade-out-animation.html">
+
+<link rel="import" href="../../bower_components/paper-radio-group/paper-radio-group.html">
+<link rel="import" href="../../bower_components/paper-checkbox/paper-checkbox.html">
+
+
+<link rel="import" href="../color-picker/color-picker.html">
+
+<dom-module id="product-item">
+
+  <template>
+
+
+  <style is="custom-style">
+
+    :host {
+      font-family: Roboto, Helvetica, Arial, sans-serif;
+      display: block; 
+
+      -webkit-user-select: none; /* Chrome/Safari */        
+      -moz-user-select: none; /* Firefox */
+      -ms-user-select: none; /* IE10+ */
+      /* Rules below not implemented in browsers yet */
+      -o-user-select: none;
+      user-select: none;
+      transition: all 0.2s ease;
+    }
+
+    :host.lite {
+      min-width: 30%;
+     /* display: none;*/
+    }
+
+    paper-icon-item .avatar {
+      background: var(--light-primary-color);
+    }
+
+    paper-icon-item .avatar {
+      display: inline-block;
+      width: 40px;
+      height: 40px;
+      bproduct-radius: 50%;
+      overflow: hidden;
+      background: var(--light-primary-color);
+      line-height: 40px;
+      text-align: center;
+      text-transform: uppercase;
+      color:#FFF;
+      font-size: 20px;
+      transition : all 0.4s ease;
+    }
+    .active paper-icon-item .avatar {
+        background: var(--accent-color);
+    }
+    .delete {
+        position: absolute;
+        top:10px;
+        left:-45px;
+        display: inline-block;
+        width: 40px;
+        height: 40px;
+        bproduct-radius: 50%;
+        overflow: hidden;
+        background: var(--alert-background);
+        line-height: 35px;
+        text-align: center;
+        text-transform: uppercase;
+        color: var(--alert-color);
+        font-size: 20px;
+        z-index: 90;
+        box-shadow: 0 1px 5px rgba(0,0,0,0.23),0 1px 0px rgba(0,0,0,0.16);
+    }
+
+    .edit {
+        position: absolute;
+        top:10px;
+        right:10px;
+        display: inline-block;
+        width: 40px;
+        height: 40px;
+        bproduct-radius: 50%;
+        overflow: hidden;
+        background: var(--default-primary-color);
+        line-height: 35px;
+        text-align: center;
+        text-transform: uppercase;
+        transition: all 0.2s ease;
+        color: var(--alert-color);
+        font-size: 20px;
+        z-index: 0;
+        box-shadow: 0 1px 5px rgba(0,0,0,0.23),0 1px 0px rgba(0,0,0,0.16);
+    }
+    
+    .active .edit {
+     /* right : 10px;*/
+    }
+
+    .select {
+        position: absolute;
+        top:10px;
+        left:-45px;
+        display: inline-block;
+        width: 40px;
+        height: 40px;
+        bproduct-radius: 50%;
+        overflow: hidden;
+        background: var(--accent-color);
+        line-height: 35px;
+        text-align: center;
+        text-transform: uppercase;
+        transition: all 0.2s ease;
+        color: var(--alert-color);
+        font-size: 20px;
+        z-index: 0;
+        box-shadow: 0 1px 5px rgba(0,0,0,0.23),0 1px 0px rgba(0,0,0,0.16);
+    }   
+
+    .select:hover {
+        background: var(--valid-background);
+        color: var(--valid-color);
+    }
+    
+    .active .select {
+      left : 10px;
+    }    
+
+    paper-icon-item {
+      position: relative;
+      margin: 0 ;
+      padding: 10px 10px;
+      display: flex;
+      text-decoration: none;
+      overflow: hidden;
+    }
+
+    .person {
+      background: #FFF;
+      box-shadow: 0 0px 2px rgba(0,0,0,0.16),0 0px 2px rgba(0,0,0,0.08);
+    }
+
+    :host:hover .person {
+      box-shadow: 0px 4px 4px 0px rgba(0,0,0,0.2);
+    }
+
+    :host.lite .person {
+      cursor: pointer;
+      transition: all 0.5s ease;
+      height: 35px;
+      display: flex;
+      align-items: center;
+      font-size: 15px;
+      padding: 5px;
+      justify-content: center;
+      white-space: nowrap;
+      border-radius: 3px;
+      box-shadow: 0px 2px 2px 0px rgba(0,0,0,0.2);
+    }
+    :host.lite .person paper-item-body {
+      max-width: none;
+    }
+
+    :host.lite .person {
+      text-shadow: 1px 2px 2px rgba(0,0,0,0.1);
+    }
+
+    :host .person.black .avatar,
+    :host.lite .person.black {
+      background: #000 !important;
+      color:#FFF;
+    }
+
+    :host .person.purple .avatar,
+    :host.lite .person.purple {
+      background: #AF2195 !important;
+      color:#FFF;
+    }
+
+    :host .person.blue .avatar,
+    :host.lite .person.blue {
+      background: #1972D2 !important;
+      color:#FFF;
+    }
+
+    :host .person.orange .avatar,
+    :host.lite .person.orange {
+      background: #d05e20 !important;
+      color:#FFF;
+    }
+
+    :host .person.yellow .avatar,
+    :host.lite .person.yellow {
+      background: #FFCB00 !important;
+      color:#fff;
+    }
+
+    :host .person.sunny .avatar,
+    :host.lite .person.sunny {
+      background: #FE730F !important;
+      color:#fff;
+    }
+
+    .active .person {
+      box-shadow: 0 1px 5px rgba(0,0,0,0.23),0 1px 0px rgba(0,0,0,0.16);
+    }
+
+    :focus {
+      outline: none;
+    }
+
+    paper-icon-item .avatar{
+        display: block;
+        float:left;
+        margin-right: 10px;
+    }
+
+    paper-icon-item paper-item-body {
+        display: block;
+        float:left;
+        max-width: 80%;
+    }
+
+    paper-icon-item .total {
+        position: absolute;
+        right: 5px;
+        top: 0;
+        height: 40px;
+        line-height: 65px;
+        font-size: 25px;     
+    }
+
+    .person {
+      cursor: pointer;
+      transition: all 0.5s ease;
+    }
+
+      paper-icon-item .secondary {
+        color: var(--secondary-text-color);
+        font-size: 13px;
+      }
+
+      paper-icon-item .total {
+        color: var(--accent-color);
+      }
+
+      .name {
+        text-transform: capitalize;
+      }
+
+      .details {
+          display: block;
+          overflow: hidden;
+      }
+
+      paper-ripple {
+        color: var(--primary-background-color);
+      }
+
+      .inputlabel {
+
+      }
+
+      paper-input {
+        margin-right: 10px;
+      }
+
+      .editing {
+        padding: 15px;
+        background: #FFF;
+      }
+
+      :host.lite .editing {
+        display: none !important;
+      }
+
+      .customers {
+        position: absolute;
+        right:15px;
+        top:0;
+        line-height: 60px;
+      }
+
+      .secondary div {
+        display: inline-block;
+      }
+
+      color-picker {
+        margin: 10px 0;
+      }
+
+      paper-radio-group {
+        margin: 5px 0;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: flex-start;
+      }
+
+      paper-radio-group paper-radio-button {
+        padding: 5px 0;
+        padding-right: 10px;
+      }
+
+    .label {
+      margin-right: 5px;
+      color:var(--default-primary-color);
+    }
+
+    hr {
+      border: none;
+      border-bottom: 1px solid var(--default-primary-color);
+      margin-right: 10px;
+    }
+
+    paper-checkbox {
+      display: block;
+      padding: 10px 0;
+    } 
+
+    </style>
+
+
+  <div class$="[[_getClass(active, 'content')]]" class="content">
+
+    <paper-icon-item tabindex="0" class="person" class$="[[_getClass(product.color, 'person')]]" on-click="onTap"  on-track="handleTrack" >
+
+        <div class="avatar" item-icon hidden="{{affichage}}" style="background-color: {{product.color}}">{{_getAvatar(product.label)}}</div>
+
+          <paper-item-body two-line>
+            <div class="name">{{product.label}}</div>
+            <div secondary class="secondary" hidden="{{affichage}}">
+                <div hidden="{{!product.type}}"><b>{{product.type}}</b></div>
+                <div hidden="{{!product.value}}">Value : <span>{{product.value}}</span></div>
+            </div>
+          </paper-item-body>
+
+      <div class="delete" item-icon><iron-icon icon="icons:delete"></iron-icon><paper-ripple></paper-ripple></div>
+
+      <div class="edit" item-icon on-tap="_selectEdit" hidden="{{affichage}}"><iron-icon icon="editor:mode-edit"></iron-icon><paper-ripple></paper-ripple></div>
+
+      <div class="select" item-icon on-tap="select" hidden="{{edit}}"><iron-icon icon="icons:check"></iron-icon><paper-ripple></paper-ripple></div>
+    </paper-icon-item>
+
+    <div class="editing" hidden="{{!edit}}">
+
+        <paper-input on-tap="_dontListen" value="{{product.label}}" on-keydown="_checkKey" class="short" label="label" ></paper-input>
+
+        <paper-input on-tap="_dontListen" type="number" value="{{product.value}}" on-keydown="_checkKey" class="short" label="value" ></paper-input>
+
+        <div on-tap="chooseType"><span class="label">Type</span><span>{{product.type}}</span></div>
+
+        <paper-radio-group selected="{{product.type}}" hidden="{{!selectType}}">
+          <paper-radio-button name="entree">Entree</paper-radio-button>
+          <paper-radio-button name="plat">Plat</paper-radio-button>
+          <paper-radio-button name="dessert">Dessert</paper-radio-button>
+          <paper-radio-button name="boisson">Boisson</paper-radio-button>
+          <paper-radio-button name="cuisson">Cuisson</paper-radio-button>
+          <paper-radio-button name="accompagnement">Accompagnement</paper-radio-button>
+          <paper-radio-button name="sauce">Sauce</paper-radio-button> 
+        </paper-radio-group>
+
+        <hr>     
+
+        <paper-checkbox checked="{{product.cuisson}}">Cuisson</paper-checkbox>
+        <paper-checkbox checked="{{product.accompagnement}}">Accompagnement</paper-checkbox>
+        <paper-checkbox checked="{{product.sauce}}">Sauce</paper-checkbox>
+
+        <color-picker label="Color" value="{{product.color}}" on-colorselected="colorselected"></color-picker>
+    </div>
+
+  </div>
+
+  </template>
+  <script>
+    Polymer({
+
+      is: 'product-item',
+      behaviors : [Polymer.NeonAnimationRunnerBehavior],
+      properties: {
+        product: {
+          type : Object,
+          observer : "observeChange"
+        },        
+        edit : {
+          type : Boolean,
+          value: false,
+        },
+        animationConfig: {
+          value: function() {
+            return {
+              'entry': {
+                name: 'scale-up-animation',
+                node: this
+              },
+              'exit': {
+                name: 'fade-out-animation',
+                node: this
+              }             
+            }
+          }
+        }        
+      },
+      listeners: {
+        'neon-animation-finish' : '_onNeonAnimationFinish'
+      },
+      colorselected : function(event, data) {
+        console.log("colorselected");
+        this.set('product.color', data.color);
+      },
+      show: function() {
+        this.style.display = "block";
+        this.playAnimation('entry');
+      },
+      _onNeonAnimationFinish : function() {
+
+      },
+      ready : function() {
+        this.setScrollDirection('y', $(this).find('paper-icon-item').get(0));
+      }, 
+      _getquery : function(label, adress) {
+        return label+" "+adress;
+      },
+      observeChange : function(datas) {
+
+        if(this.product) {
+
+          if(this.product.creationDate) {
+            var diffDate = new Date().getTime() - this.product.creationDate;
+          
+            if(!this.product.label && diffDate < 1000 ) {
+
+              setTimeout(_.bind(function() {
+                if(!this.product.label) {
+                  this._selectEdit();
+                }
+              },this), 100);
+
+            }
+
+          }
+
+        }
+
+      },
+      _setdata : function(e) {
+        console.log("_setdata");
+      },  
+      onTap : function() {
+        if(this.product.label) {
+          if(this.active) {
+            this.desactivate();
+          } else {
+            this.activate();
+            this.select();
+          }
+        }
+      },      
+      activate : function() {
+        this.set('active', 'active');
+        this.fire('activate', {product : this.product});
+      },
+      desactivate : function() {       
+        this.set('active', false);
+        this.set('edit', false);
+        this.fire('desactivate', {product : this.product});
+      },
+      select : function(e) {
+        if(e) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+
+        $(this).find('.content').removeClass('active');
+        this.active = false;
+        this.fire('selectproduct', this.product);
+      },
+      _getCustomersNumber : function(taget) {
+        var nbr = 0;
+        if(taget.customers) {
+          nbr = Object.size(taget.customers);
+        }
+        return nbr;
+      },
+      _getClass : function(target, others) {
+
+        if(target) {
+          return target+" "+others;
+        } else {
+          return others;
+        }
+
+      },
+      _dontListen : function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+      },
+      _selectEdit : function(e) {
+        if(e) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+
+        if(this.edit) {
+          this.edit = false;
+        } else {
+          this.edit = true;
+          $(this).find('paper-input input').get(0).focus();
+        }
+
+      },
+      _getAvatar : function(name) {
+
+        if(name) {
+/*
+          var hash  = 0;
+          for (var i = 0; i < name.length; i++) {
+             hash  = name.charCodeAt(i) + ((hash  << 5) - hash );
+          }
+
+          var c = (hash & 0x00FFFFFF).toString(16).toUpperCase();
+          var color =  "00000".substring(0, 6 - c.length) + c;
+          this.colorAvatar = "#"+color;
+          $(this).find('paper-icon-item .avatar').css('background', this.colorAvatar);
+*/
+        return name.charAt(0);
+        }
+
+
+
+      },
+      _checkKey: function(e) {
+        if (e.keyCode === 13) {
+          this.desactivate();
+        }
+      },
+      _onDelete: function() {
+        this.fire('delete-product', {product: this.product});
+      },
+
+      handleTrack: function(e) {
+        
+        if (this.affichage && this.affichage == 'lite') {
+          return true;
+        }
+
+        if(!this.trackInfo) {
+            this.trackInfo = {};
+        }
+
+        var message;
+
+        switch(e.detail.state) {
+          case 'start':
+            message = 'Tracking started!';
+
+            this.trackInfo.start = {
+              x : e.detail.x,
+              y : e.detail.y,
+            };
+
+            break;
+          case 'track':
+            message = 'Tracking in progress... ' +
+              e.detail.x + ', ' + e.detail.y;
+            this.trackInfo.progress = {
+              x : e.detail.x,
+              y : e.detail.y,
+            };
+
+            break;
+          case 'end':
+            message = 'Tracking ended!';
+            this.trackInfo.end = {
+              x : e.detail.x,
+              y : e.detail.y,
+            };
+
+
+            break;
+        }
+
+        this.calcTrack(e);
+
+      },
+      calcTrack : function(e) {
+
+        if(this.onDestroy) {
+          return false;
+        }
+
+        if(this.trackInfo && this.trackInfo.start && this.trackInfo.progress) {
+
+
+          var diffY = Math.abs(this.trackInfo.progress.y - this.trackInfo.start.y);
+          var diffX = Math.abs(this.trackInfo.progress.x - this.trackInfo.start.x);
+
+          if(diffY < diffX) {
+
+            if(this.trackInfo.start.x > this.trackInfo.progress.x) {
+
+              var percent = diffX/$(this).width();
+              var left = (150*percent);
+
+              if(left > 10) {
+                left = 10;
+              }
+              if(!this.edit) {
+                /*
+                $(this).find('.edit').css({
+                  right : left+"px",
+                  transition : "height 0.5s ease"                
+                });
+
+                if(diffX > 50) {
+                  this._selectEdit();
+                }
+                */
+              }
+
+            } else if(this.trackInfo.start.x < this.trackInfo.progress.x) {
+
+              var percent = diffX/$(this).width();
+              var left = -50+(150*percent);
+
+              if(left > 10) {
+                left = 10;
+              }
+
+              $(this).find('.delete').css({
+                left : left+"px",
+                transition : "height 0.5s ease"
+              });
+
+              if(diffX > $(this).width()/2) {
+                this.destroy();
+              }
+            }
+
+          } else {
+
+            if(this.trackInfo.start.y > this.trackInfo.progress.y) {
+              /*
+                $(this).css({
+                  'margin-top' : diffY,
+                });   
+              */ 
+              if(diffY > 100) {
+                console.log('slide top');                
+              }
+            } else if(this.trackInfo.start.y < this.trackInfo.progress.y) {
+/*
+                $(this).css({
+                  'margin-bottom' : diffY,
+                });
+*/
+              if(diffY > 100) {
+                console.log('slide bottom');
+              }
+            }
+
+          }
+        }
+
+        if(e.detail.state == 'end' && !this.onDestroy) {
+            this.trackInfo = {};
+            $(this).find('.delete').css({
+                left : "-45px",
+                transition : "all 0.5s ease"
+            });
+        }
+
+      },
+
+      destroy : function(direction) {
+
+        if(!this.onDestroy) {
+
+          this.onDestroy = true;
+
+            $(this).css({
+              opacity : 0,
+              transition : "all 0.3s ease-out"
+            });
+
+
+          var that = this;
+          setTimeout(_.bind(function() {
+            this.fire('delete', {product : this.product});
+            $(this).remove();
+          },this), 300);
+        }
+
+      },
+    });
+  </script>
+</dom-module>

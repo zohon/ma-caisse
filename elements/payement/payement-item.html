@@ -1,0 +1,129 @@
+<!--
+@license
+Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+<link rel="import" href="../../bower_components/paper-item/paper-item.html">
+
+<dom-module id="payement-item">
+
+  <template>
+
+
+  <style is="custom-style">
+
+    :host {
+      font-family: Roboto, Helvetica, Arial, sans-serif;
+      display: block; 
+      background: #FFF;
+
+      -webkit-user-select: none; /* Chrome/Safari */        
+      -moz-user-select: none; /* Firefox */
+      -ms-user-select: none; /* IE10+ */
+      /* Rules below not implemented in browsers yet */
+      -o-user-select: none;
+      user-select: none;
+      transition: all 0.2s ease;
+    }
+
+    :host:hover {
+      box-shadow: 0px 4px 4px 0px rgba(0,0,0,0.2);
+    }
+
+    paper-item {
+      margin-bottom: 10px;
+      padding:0;
+      box-shadow: 0 5px 5px -7px #000;
+    }
+
+    paper-item:focus:before {
+      display: none;
+    }
+
+    paper-item .box {
+      width: 48px;
+      height: 48px;
+      margin-right: 10px; 
+
+      display: flex;
+      border-radius: 0;
+      overflow: hidden;
+      background: var(--accent-color);
+      color: var(--accent-text-color) !important;
+
+      justify-content:center;
+      align-items:center;
+
+      text-transform: uppercase;
+      
+      font-size: 25px;
+      transition : all 0.4s ease;
+      cursor: pointer;
+    }
+
+    .active paper-item .box {
+        background: var(--accent-color);
+    }
+
+    paper-item .box.right {
+      position: absolute;
+      right: 0;
+      margin:0;
+      background: var(--default-primary-color);
+      color : var(--text-primary-color);
+    }
+
+    .name {
+      font-size: 15px;
+    }
+
+    .value {
+      display: inline-block;
+      color: var(--disabled-text-color);
+    }
+
+    </style>
+    
+  <div class="content" >
+    <paper-item tabindex="0" class="person"  on-track="handleTrack" >
+        <div class="box" on-tap="check" item-icon><span>{{payed}}</span><paper-ripple></paper-ripple></div>
+        <paper-item-body two-line>
+          <div class="name">
+            <span>{{payement.label}}</span>
+            <div class="value" hidde="{{!payement.value}}"><span>{{payement.value}}</span>€</div>
+          </div>
+        </paper-item-body>
+        <div class="box right" on-tap="uncheck" item-icon><span>1</span><paper-ripple></paper-ripple></div>
+    </paper-item>
+  </div>
+
+  </template>
+  <script>
+    Polymer({
+      is: 'payement-item',
+      properties: {
+        payement: {
+          type : Object
+        },
+        payed : {
+          value : 1
+        }
+      },
+      ready : function() {
+
+      },
+      check : function() {
+        this.set('payed', parseFloat(this.payed)-1);
+        this.fire('addencour', this.payement.value);
+      },
+      uncheck : function() {
+        this.set('payed', parseFloat(this.payed)+1);
+        this.fire('removeencour', this.payement.value);
+      }    
+    });
+  </script>
+</dom-module>

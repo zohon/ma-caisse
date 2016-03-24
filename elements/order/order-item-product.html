@@ -1,0 +1,205 @@
+<!--
+@license
+Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+
+<dom-module id="order-item-product">
+
+  <template>
+
+  <style is="custom-style">
+
+    :host {
+      font-family: Roboto, Helvetica, Arial, sans-serif;
+      display: block; 
+      background: #FFF;
+
+      -webkit-user-select: none; /* Chrome/Safari */        
+      -moz-user-select: none; /* Firefox */
+      -ms-user-select: none; /* IE10+ */
+      /* Rules below not implemented in browsers yet */
+      -o-user-select: none;
+      user-select: none;
+      position: relative;
+      transition: all 0.2s ease;
+      padding: 0px;
+      overflow: hidden;
+      border-radius: 2px 5px 5px 2px;
+    }
+
+    :host:hover {
+
+    }
+
+    .orderProduct {
+      display: flex;
+      align-items: center;
+      height: 100%;
+      justify-content: space-between;
+      padding: 0 0 0 5px;
+      align-items: center;
+      border-left: 10px solid var(--accent-text-color);
+    }
+
+    .value {
+      padding: 7px;
+      background: #eee;
+      color:#000;
+      display: none;
+    }
+
+    .number {
+      background: var(--accent-color);
+      color : var(--text-primary-color);
+      padding: 7px;
+    }
+
+    .label {
+    }
+
+    .supp {
+      margin-right: 1px;
+      padding: 0 5px;
+      font-size: 13px;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      border-left: 1px solid var(--accent-text-color);
+    }
+
+    .supplements {
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background-color: var(--accent-color);
+      color : var(--accent-text-color);
+      transform: skewX(-20deg);
+      padding-right: 10px;
+      margin-right: -10px;
+    }
+
+    </style>
+    
+     <div class="orderProduct" on-tap="onTap" style="border-left: 10px solid {{item.color}};">
+       <span class="label">{{item.label}}</span>
+
+       <div class="supplements" hidden="{{!_suppExist(item)}}">
+         <span class="cuisson supp" hidden="{{!item.cuisson}}" >{{item.cuisson}}</span>
+         <span class="sauce supp" hidden="{{!item.sauce}}" >{{item.sauce}}</span>
+         <span class="accompagnement supp" hidden="{{!item.accompagnement}}" >{{item.accompagnement}}</span>
+       </div>
+
+       <paper-ripple style="color : {{item.color}};"></paper-ripple>
+     </div>
+
+  </template>
+  <script>
+    Polymer({
+
+      is: 'order-item-product',
+      properties: {
+        item: {
+          type : Object,
+          notify : true,
+        },        
+      },
+      onTap : function() {
+        if(this.item.label) {
+          if(this.active) {
+            this.desactivate();
+          } else {
+            this.activate();
+            this.select();
+          }
+        }
+      },
+      _suppExist : function(item) {
+
+        if(item.cuisson || item.sauce || item.accompagnement) {
+          return true;
+        }
+
+        return false;
+      },
+      _getTotal : function(value, nb) {
+        return value*nb;
+      },
+      activate : function() {
+        this.active = 'active';
+      },
+      desactivate : function() {       
+        this.active = false;
+        this.edit = false;
+      },
+      associate : function(data) {
+        if(this.item.__firebaseKey__ == data.__firebaseKey__) {       
+          this.set('item.nb', parseInt(this.item.nb)+1);
+        }
+      },
+      selectall : function(callbacks) {
+
+        if (this.item.nb) {
+
+          if(this.item.nb > 1) {
+            for (var i=1; i< this.item.nb; i++) {
+              this.fire('deleteitem', this.item);
+            }
+          }
+
+          this.set('item.nb', 1);
+          this.fire('deleteitem', this.item);
+
+          if(callbacks && callbacks.success) {
+            callbacks.success.call();
+          }
+
+        }
+
+      },  
+      select : function(e, callbacks) {
+        if(e) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+
+        this.active = false;
+        if(this.item) {
+          this.fire('deleteitem', this.item);
+          
+          if(this.item.nb > 1) {
+            this.set('item.nb', parseInt(this.item.nb)-1);
+          }
+          
+          this.fire('changeitem');
+
+          if(callbacks && callbacks.success) {
+            callbacks.success.call();
+          }
+
+        }
+
+      },
+      _getClass : function(target, others) {
+
+        if(target) {
+          return target+" "+others;
+        } else {
+          return others;
+        }
+
+      },
+      _dontListen : function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    });
+  </script>
+</dom-module>
+

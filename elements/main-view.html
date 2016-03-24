@@ -1,0 +1,943 @@
+
+<!--
+@license
+Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+
+
+<!-- Iron elements -->
+<link rel="import" href="../bower_components/iron-flex-layout/classes/iron-flex-layout.html">
+
+<!-- Paper elements -->
+<link rel="import" href="../bower_components/paper-drawer-panel/paper-drawer-panel.html">
+<link rel="import" href="../bower_components/paper-header-panel/paper-header-panel.html">
+<link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../bower_components/paper-menu/paper-menu.html">
+<link rel="import" href="../bower_components/paper-toolbar/paper-toolbar.html">
+
+<link rel="import" href="auth/auth-view.html">
+
+<link rel="import" href="order/order-view.html">
+<link rel="import" href="product/product-view.html">
+<link rel="import" href="stock/stock-view.html">
+<link rel="import" href="planning/planning-view.html">
+<link rel="import" href="production/production-view.html">
+<link rel="import" href="payement/payement-mainview.html">
+<link rel="import" href="bill/bill-view.html">
+<link rel="import" href="user/user-view.html">
+
+<dom-module id="main-view">
+  <template >
+
+  <style>
+      :host {
+        display: block;
+      }
+
+      #drawerToolbar, #mainToolbar {
+        color: var(--drawer-text-color);
+        background-color: var(--drawer-menu-color);
+      }
+
+      #mainToolbar .app-name {
+
+      }
+
+      #drawerToolbar .logo {
+      height: 55px;
+      background: #FFF;
+      padding: 3px;
+      margin-top: 15px;
+      }
+
+      .app-name {
+        font-family: var(--special-font-family) !important;
+        max-height: 50px;
+        font-size: 35px;
+      }
+
+
+      paper-toolbar .title {
+        font-family: var(--special-font-family) !important;
+        font-size: 35px !important;
+        margin:0 !important;
+
+      }
+
+      #drawerToolbar .logo img{
+            max-height: 60px;
+      }
+
+      paper-menu {
+        padding: 15px 0 !important;
+      }
+
+
+      .paper-menu > .iron-selected {
+        color: var(--default-primary-color);
+      }
+
+      paper-menu a {
+        text-decoration: none;
+        color: var(--menu-link-color);
+        display: -ms-flexbox;
+        display: -webkit-flex;
+        display: flex;
+        -ms-flex-direction: row;
+        -webkit-flex-direction: row;
+        flex-direction: row;
+        -ms-flex-align: center;
+        -webkit-align-items: center;
+        align-items: center;
+        font-family: var(--default-font-family);
+        -webkit-font-smoothing: antialiased;
+        text-rendering: optimizeLegibility;
+        font-weight: 400;
+        min-height: 50px;
+        padding: 0 15px;
+        transition : all 0.5s ease;
+        position: relative;
+      }
+
+      paper-menu a.iron-selected {
+        font-weight: normal !important;
+      }
+
+      paper-menu a span {
+        max-height: 40px;
+        overflow: hidden;
+        max-width: 75%;
+      }
+
+      paper-menu iron-icon {
+        margin-right: 20px;
+        opacity: 1;
+      }
+
+      paper-menu a.iron-selected {
+        background: var(--dark-primary-color);
+        color : var(--text-primary-color);
+      }
+
+      paper-menu a.iron-selected iron-icon{
+        opacity: 1;
+      }
+
+      #mainToolbar .middle-container {
+        height: 100%;
+      }
+
+      #middleBar.paper-toolbar {
+        left: 45px !important;
+      }
+
+      #mainToolbar:not(.tall) .middle {
+        font-size: 18px;
+        padding-bottom: 0;
+      }
+
+      .clear-btn:hover,
+      .clear-btn:focus {
+        background-color: var(--text-primary-color);
+        color: var(--default-primary-color);
+      }
+
+      /* Height of the scroll area */
+      .content {
+        padding: 15px 15px;
+        padding-bottom: 41px;
+      }
+
+      .drawer {
+        z-index: 100;
+      }
+
+      html /deep/ #ink {
+        color: var(--menu-link-color);
+      }
+
+      .loader {
+        text-align: center;
+        margin-bottom: 10px;
+        padding:5px;
+        box-radius : 50%;
+      }
+
+      .loader paper-spinner {
+        background: #FFF;
+        padding: 10px;
+        border-radius: 100%;
+        box-shadow: 0px 2px 1px #ddd;
+      }
+
+      .urlTexarea {
+         opacity: 0;
+         width:1px;
+         position: absolute;
+         right:0;
+         top:0;
+      }
+
+      .hidden {
+        display: none;
+      }
+
+      .MiniStock {
+          position: fixed;
+          bottom: -65px;
+          left: 0;
+          z-index: 300;
+          background: #FFF;
+          padding: 0px 5px 0;
+          max-height: 68px;
+          box-shadow: 0px 0px 10px -3px #888;
+          width: 100%;
+          transition: all 1s ease;
+      }
+
+      .MiniStock.appear {
+        bottom:0;
+      }
+
+      .MiniStock .item {
+        display: inline-block;
+        background: var(--dark-primary-color);
+        color : var(--text-primary-color);
+        padding: 5px 15px;
+        margin : 5px 0;
+        border-radius: 2px;
+      }
+
+      @-webkit-keyframes  alerting {
+          0% { 
+            background-color : red;
+          }
+          30% {
+            background-color : black;
+          }
+          50% { 
+            background-color : red;
+          }
+          70% {
+            background-color : black;
+          }
+          100% { 
+            background-color : red;
+          }
+      }
+
+      @keyframes alerting {
+          0% { 
+            background-color : red;
+          }
+          30% {
+            background-color : black;
+          }
+          50% { 
+            background-color : red;
+          }
+          70% {
+            background-color : black;
+          }
+          100% { 
+            background-color : red;
+          }
+      }
+
+      .MiniStock .item.warning {
+        animation-name: alerting;
+        animation-duration: 4s;
+        -webkit-animation-name: alerting; /* Chrome, Safari, Opera */
+        -webkit-animation-duration: 4s; /* Chrome, Safari, Opera */  
+        background: var(--alert-background);
+        color : var(--alert-color);
+        animation-iteration-count: infinite;
+        -webkit-animation-iteration-count: infinite;        
+      }
+
+      .MiniStock .item.alert {
+        animation-name: alerting;
+        animation-duration: 1s;
+        -webkit-animation-name: alerting; /* Chrome, Safari, Opera */
+        -webkit-animation-duration: 1s; /* Chrome, Safari, Opera */  
+        background: var(--alert-background);
+        color : var(--alert-color);
+        animation-iteration-count: infinite;
+        -webkit-animation-iteration-count: infinite;        
+      }
+
+      .MiniStock .item.stop {
+        background: var(--alert-background);
+        color : var(--alert-color);   
+      }
+
+      .reset {
+        background: var(--alert-background) !important;
+        color : var(--alert-color) !important;   
+      }
+
+      .list a:hover {
+        background: var(--light-primary-color);
+        color : var(--text-primary-color);
+        cursor: pointer;
+      }
+
+      .admin {
+        float:right;
+        cursor: pointer;
+      }
+
+      paper-menu hr {
+        margin:0;
+      }
+
+      .changeshiftdate {
+        padding : 0 15px;
+      }
+
+      .MiniStock .closeStock {
+        position: absolute;
+        top: -24px;
+        right: 10px;
+        z-index: 2000;
+        box-shadow: 0px -1px 1px 0px rgba(0,0,0,0.2);
+        background: #FFF;
+      }
+
+      .MiniStock .item{
+        display: none;
+      }
+
+      .MiniStock.active .item{
+        display: inline-block;
+      }
+
+      .MiniStock.active .closeStock .less{
+        display: none;
+      }  
+
+      .MiniStock.active .closeStock .more{
+        display: block;
+      }      
+
+      .MiniStock .closeStock .less{
+        display: block;
+      }
+
+      .MiniStock .closeStock .more{
+        display: none;
+      }
+
+      .userControl {
+        position: absolute;
+        top:0;
+        right:0;
+        z-index:2000;
+      }      
+
+  </style>
+
+    <auth-view id="auth" user="{{user}}" network="{{network}}" location="{{_geturlauth()}}" on-logout="logout" on-login="login" on-online="online" on-offline="offline" ></auth-view>
+
+    <paper-drawer-panel id="paperDrawerPanel">
+      <div drawer class="drawer" hidden="{{!showOnlogin(user, network)}}">
+
+        <!-- Drawer Toolbar -->
+        <paper-toolbar id="drawerToolbar" on-click="showchangeshiftdateswitch"><span class="title">{{shiftdate}}</span><iron-icon on-click="toggleAdmin" icon="communication:vpn-key" class="admin"></iron-icon></paper-toolbar>
+        <!--
+         <div class='logo'>
+          <img src="../images/touch/icon-128x128.png">
+          </div>
+        -->
+        <!-- Drawer Content -->
+
+        <div hidden="{{!admin}}" class="changeshiftdate">
+          <paper-input id="selectshiftdate" value="[[shiftdate]]" class="short" label="Shift" ><div suffix><iron-icon icon="icons:done" on-click="changeshiftdate"></iron-icon></div></paper-input>
+        </div>
+        
+        <paper-menu class="list" attr-for-selected="data-route" selected="{{page}}">
+
+          <a data-route="order" tabindex="-1" on-tap="closeDrawer">
+            <iron-icon icon="editor:mode-edit"></iron-icon>
+            <span>Commander</span>
+            <paper-ripple></paper-ripple>
+          </a>
+
+          <a data-route="production" tabindex="-1" on-tap="closeDrawer" >
+            <iron-icon icon="social:whatshot"></iron-icon>
+            <span>Production</span>
+            <paper-ripple></paper-ripple>
+          </a>
+
+          <a data-route="payement" tabindex="-1" on-tap="closeDrawer" >
+            <iron-icon icon="editor:attach-money"></iron-icon>
+            <span>Payement</span>
+            <paper-ripple></paper-ripple>
+          </a>
+
+          <a data-route="bill" tabindex="-1" on-tap="closeDrawer" >
+            <iron-icon icon="icons:bookmark-border"></iron-icon>
+            <span>Bill</span>
+            <paper-ripple></paper-ripple>
+          </a>
+
+          <a data-route="products" tabindex="-1" on-tap="closeDrawer" hidden="{{!admin}}">
+            <iron-icon icon="maps:local-pizza"></iron-icon>
+            <span>Products</span>
+            <paper-ripple></paper-ripple>
+          </a>
+
+          <hr hidden="{{!admin}}" />
+
+          <a tabindex="-1" class="export" on-tap="export" hidden="{{!admin}}" >
+            <iron-icon icon="icons:cloud-download"></iron-icon>
+            <span>Export</span>
+            <paper-ripple></paper-ripple>
+          </a>
+
+          <a tabindex="-1" class="reset" on-tap="reset" hidden="{{!admin}}" >
+            <iron-icon icon="icons:block"></iron-icon>
+            <span>Reset</span>
+            <paper-ripple></paper-ripple>
+          </a>
+
+        </paper-menu>
+      </div>
+      <paper-header-panel main>
+
+        <!-- Main Toolbar -->
+        <paper-toolbar id="mainToolbar">
+        
+
+          <span class="flex"></span>
+
+          <!-- Application name -->
+          <div class="middle middle-container center horizontal layout flex">
+
+          <paper-icon-button id="paperToggle" icon="icons:menu" paper-drawer-toggle ></paper-icon-button>
+
+          <div class="app-name flex"><span>{{page}}</span></div>
+
+          <paper-icon-button hidden="{{!showOfflineIcon(network)}}" icon="device:signal-wifi-off" ></paper-icon-button>
+          
+          <paper-icon-button hidden="{{!showUserIcon(user, network)}}" on-click="goToUser" id="userControl" icon="social:person" ></paper-icon-button>
+
+          </div>
+
+        </paper-toolbar>
+
+        <!-- Main Content -->
+        <div class="content" hidden="{{!showOnlogin(user, network)}}">
+
+          <div hidden="{{!loading}}" class="loader"><paper-spinner active></paper-spinner></div>
+
+          <div hidden="{{page}}" class="loader"><paper-spinner active></paper-spinner></div>
+
+          <item-data id="itemDataOrder" name="orders" location="{{_geturlorder(firebaseLocation, shiftdate)}}" items="{{orders}}" on-connected="_readyFirebaseOrders" ></item-data>
+
+          <item-data name="products" location="{{_geturlproducts(firebaseLocation)}}" items="{{products}}" on-connected="_readyFirebaseProducts" ></item-data>
+          
+          <product-view hidden="{{!_selectRoute(page, 'products')}}" class="flex" products="{{products}}" ></product-view>
+
+          <order-view  id="orderView" search="{{searchSchedule}}" hidden="{{!_selectRoute(page, 'order')}}" class="flex" products="{{products}}" orders="{{orders}}" on-selectproduct="_selectproduct" on-deleteitem="_deleteproduct" on-selectorderpayement="_selectorderpayement"></order-view>
+
+          <production-view id="productionView" hidden="{{!_selectRoute(page, 'production')}}" class="flex" orders="{{orders}}"></production-view>
+
+          <payement-mainview id="payementView" orders="{{orders}}" hidden="{{!_selectRoute(page, 'payement')}}" class="flex"></payement-mainview>
+
+          <bill-view id="billView" hidden="{{!_selectRoute(page, 'bill')}}" class="flex"></bill-view>
+
+          <user-view id="userView" location="{{_geturlauth()}}" on-logout="logout" on-login="login" hidden="{{!_selectRoute(page, 'user')}}" user="{{user}}" class="flex"></user-view>
+
+        </div>
+
+      </paper-header-panel>
+    </paper-drawer-panel>
+
+  </template>
+  <script>
+    Polymer({
+      is: 'main-view',
+      properties: {
+        user: {
+          type: Object,
+          value : "",
+          notify: true   
+        },
+        changeshiftdateswitch : {
+          value : false
+        },
+        shiftdate: {
+          value : ''
+        },
+        page: {
+          value : '',
+          notify: true,
+          observer : '_changePage'
+        },
+        total : {
+          type : Number,
+          notify: true
+        },
+        loading : {
+          type: Boolean,
+          value : false,
+          notify: true,
+        }, 
+        path : Object,
+        admin : {
+          type : Boolean,
+          value : false,
+          notify: true,
+        },
+        network : {
+          value : "",
+          notify: true  
+        }              
+      },   
+      created: function() {
+        this.set('dev' , false);
+
+        if(window.location.href.indexOf('localhost') >= 0) {
+          this.set('dev' , true);
+        }
+
+        this.set('bdd', 'https://ma-caisse.firebaseio.com');
+        this.set('bdd_dev', 'https://ma-caisse-dev.firebaseio.com');
+
+      },
+      ready : function() {
+        //this.set('firebaseLocation', (this.dev ? this.bdd_dev : this.bdd));
+      },
+      online : function() {
+        this.set('network' ,  "online");
+      },
+      offline : function() {
+        this.set('network' ,  "offline");
+      },
+      showOnlogin : function(user, network) {
+
+        if(!user) {
+          return false;
+        }
+
+        return true;
+      },
+      isOnline : function(network) {
+
+        if(network == "online") {
+          return true;
+        }
+
+        return false;
+      },
+      login : function(e, data) { 
+        if(data.user) {
+          this.set('user', data.user);
+          this.set('firebaseLocation', "");
+          this.set('firebaseLocation', (this.dev ? this.bdd_dev : this.bdd));
+        }
+      },      
+      logout : function() {
+        if(this.user) {
+          this.set('user', "");
+        }
+      },
+      showOfflineIcon : function(network) {
+        if(network == 'offline') {
+          return true;
+        }
+        return false;
+      },
+      showUserIcon : function(user, network) {
+        if(user != "" && network == 'online') {
+          return true;
+        }
+
+        return false;
+      },      
+      goToUser : function() {
+        this.set('page', 'user');
+      },
+      toggleAdmin : function(e) {
+
+        if(this.admin) {
+          this.set('admin', false);
+        } else {
+          this.set('admin', true);
+        }
+
+      },
+      showchangeshiftdateswitch : function() {
+
+        if(this.changeshiftdateswitch) {
+          this.set('changeshiftdateswitch', false);
+        } else {
+          this.set('changeshiftdateswitch', true);
+        }
+
+      },
+      changeshiftdate : function() {
+        this.set("shiftdate", this.$.selectshiftdate.value);
+      },
+      _getShiftDate : function() {
+        if (!this.shiftdate) {
+          var d = new Date();
+          var day = (d.getDate() < 10 ? "0"+d.getDate() : d.getDate());
+          var month = (d.getMonth()+1 < 10 ? "0"+(d.getMonth()+1) : (d.getMonth()+1));          
+          var year = (d.getFullYear() < 10 ? "0"+d.getFullYear() : d.getFullYear());
+
+          var resultDate = day+"-"+month+"-"+year;
+
+          this.set('shiftdate',resultDate);
+        }
+        return this.shiftdate;
+      },
+      _geturlauth : function() {
+
+        if(this.dev) {
+          url = this.bdd_dev;
+        } else {
+          url = this.bdd;
+        }
+
+        return url;
+      },      
+      _geturlorder : function(location) {
+        var shiftdate = this._getShiftDate();
+        if(location) {
+          return location+"/orders/"+shiftdate;
+        }
+      }, 
+      _geturlproducts : function(location) {
+        if(location) {        
+          return location+"/products";
+        }
+      },  
+      _readyFirebaseOrders : function() {
+
+        //console.log("_readyFirebaseOrders");
+
+        if(!this.page && (this.user|| this.network == 'offline')) {
+          this.set('page','order');
+        }
+
+        this.selectRouting();
+        //this.loader();
+      },
+      _readyFirebaseProducts : function() {
+        /*this.selectRouting();
+        this.loader();
+        */
+      },
+      loader : function() {
+
+        if(this.loading) {
+          this.set('loading', false);
+        } else {
+          this.set('loading', true); 
+        }
+
+      },
+      reset : function(e) {
+
+        if(e) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+
+        this.closeDrawer(e);
+
+        switch(this.page) {
+          case 'order':
+            $(this).find('order-view').get(0).reset();
+            break;                         
+        }
+      },
+      export : function(e) {
+
+        if(e) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+
+        this.closeDrawer(e);
+        this.JSONToCSVConvertor(this.getCommands(), "Orders "+this.shiftdate);
+        //this.JSONToCSVConvertor(this.orders, "Orders "+this.shiftdate, true);
+      },
+      _readyCustomers : function() {
+        this._calcTotal();
+      },
+      sendSMS : function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        $(this).find('#urlTexarea').val(window.location.href);
+        $(this).find('#urlTexarea').select();
+
+        try {
+          var successful = document.execCommand('copy');
+          var msg = successful ? 'successful' : 'unsuccessful';
+          console.log('Copying text command was ' + msg);
+        } catch (err) {
+          console.log('Oops, unable to copy');
+        }
+        $('#toast').prop('text', 'Url copy to clipboard');
+        $('#toast').get(0).show();
+
+        if(window.mobilecheck()) {
+          window.open('sms:?body='+window.location.href, '_system');
+        }
+
+      },
+      _calcTotal : function(e) {
+
+        this.infoTotal = $(this).find('#personView').get(0).infoTotal;
+
+        this.total = this.infoTotal.total;
+        this.paid = this.infoTotal.paid;
+      },
+      _changePage : function(page) {
+
+        console.log("_changePage");
+        console.log(page);
+
+        switch(page) {
+            case 'order':
+              this.$.orderView.refresh();
+              console.log("_changePage "+page);
+              break;          
+            case 'production':
+              //this.$.productionView.loadProduction();
+              console.log("_changePage "+page);
+              break;
+        }
+        
+      },
+      _setschedule : function(e) {
+        $(this).find('planning-view').get(0).setschedule(e.detail);
+      },
+      showMenu : function() {
+
+        if($(this).find('#menu-select-element').get(0).show) {
+          $(this).find('#menu-select-element').get(0).cache();
+        } else {
+          $(this).find('#menu-select-element').get(0).showSelect();
+        }
+
+      },
+      associateProduct : function(template, data) {
+        if(data && data.product) {
+          $(this).find('#personView').get(0).associate(data.product);
+        }
+      },
+      changeRouting : function(params) {
+        this.set('path', params);
+        this.selectRouting();
+      },
+      selectRouting : function() {
+        if(this.path) {
+          
+        }
+      },
+      _selectRoute : function(info, target) {
+        if(info == target) {
+          return true;
+        } else {
+          return false;
+        }
+      },
+      _selectproduct : function(e) {
+        this.gestionStock(e.detail, 'add');
+      },
+      _selectorderpayement : function(e) {
+
+        this.set('orderpayement', e.detail);
+        this.set('page', 'payement');
+      },
+      _deleteproduct : function(e) {
+        if(product = _.findWhere(this.products, {__firebaseKey__ : e.detail.__firebaseKey__})) {
+          this.gestionStock(product, 'delete');
+        }
+      },
+      gestionStock : function(produit, type) {
+
+        if(this.stocks) {
+
+          _.each(produit, _.bind(function(nballiment, alliment) {
+            if(product = _.findWhere(this.stocks, {label : alliment}) ) {
+
+              if(type == 'add') {
+                $(this).find('stock-view').get(0).unstock({
+                  label : alliment,
+                  nb : nballiment
+                });
+              } else {
+                $(this).find('stock-view').get(0).stock({
+                  label : alliment,
+                  nb : nballiment
+                });
+              }
+
+            }
+          },this));
+
+        }
+
+      },  
+      // Close drawer after menu item is selected if drawerPanel is narrow
+      closeDrawer: function(e) {
+        e.preventDefault();
+        var drawerPanel = this.$.paperDrawerPanel;
+        if (drawerPanel.narrow) {
+          drawerPanel.closeDrawer();
+        }
+      },
+      timeConverter : function(UNIX_timestamp){
+        var a = new Date(UNIX_timestamp);
+        var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        var year = a.getFullYear();
+        var month = months[a.getMonth()];
+        var date = a.getDate();
+        var hour = a.getHours();
+        var min = a.getMinutes();
+        var sec = a.getSeconds();
+        var time = date + ' ' + month + ' ' + year + ' ' + hour + ':' + min + ':' + sec ;
+        return time;
+      },
+      extractInfos : function() {
+
+
+
+
+
+
+
+      },
+      getCommands : function() {
+
+        var CSV = "";
+        var sep = ";";
+        var listLabels = [
+          {
+            display : 'Date',
+            label : 'creationDate'
+          },
+          {
+            display : 'Name',
+            label : 'label'
+          },
+          {
+            display : 'Schedule',
+            label : 'schedule'
+          },
+          {
+            display : 'Money',
+            label : 'money'
+          },
+          {
+            display : 'Ticket',
+            label : 'ticket'
+          }, 
+          {
+            display : 'Credit card',
+            label : 'cb'
+          },
+          {
+            display : 'Free',
+            label : 'free'
+          },                     
+          {
+            display : 'Order',
+            label : 'list'
+          },          
+        ];
+
+        var labelRow = "";
+
+        _.each(listLabels, function(listLabel) {
+          labelRow += listLabel.display+sep;
+        });
+
+        CSV += labelRow + '\r\n';
+
+        _.each(this.orders, _.bind(function(data, index) {
+          var rowContent = "";
+          _.each(listLabels, _.bind(function(listLabel) {
+            rowContent += this.filterData(data, listLabel.label)+sep;
+          },this));
+          CSV += rowContent + '\r\n';
+        },this));
+
+        return CSV;
+
+      },
+      filterData : function(data, target) {
+
+        var result = "";
+
+        if(data[target]) {
+
+          switch(target) {
+              case 'list':
+                var resultList = [];
+                _.each(data[target], function(datalist, index) {
+                  resultList.push(datalist.label + " ("+datalist.nb+")");
+                });
+                result = resultList.join(' - ');
+                break;
+              case 'creationDate':
+                result = this.timeConverter(data[target]);
+                break;
+              default:
+                result = data[target];
+          }
+
+        } else {
+          result = "";
+        }
+
+        return result;
+      },
+      JSONToCSVConvertor : function(CSV, ReportTitle) {
+
+        if (CSV == '') {
+            alert("Invalid data");
+            return;
+        }   
+        
+        //Generate a file name
+        var fileName = "";
+        //this will remove the blank-spaces from the title and replace it with an underscore
+        fileName += ReportTitle.replace(/ /g,"_");   
+        
+        //Initialize file format you want csv or xls
+        var uri = 'data:text/csv;charset=utf-8,' + escape(CSV);
+        
+        // Now the little tricky part.
+        // you can use either>> window.open(uri);
+        // but this will not work in some browsers
+        // or you will not get the correct file extension    
+        
+        //this trick will generate a temp <a /> tag
+        var link = document.createElement("a");    
+        link.href = uri;
+        
+        //set the visibility hidden so it will not effect on your web-layout
+        link.style = "visibility:hidden";
+        link.download = fileName + ".csv";
+        
+        //this part will append the anchor tag and remove it after automatic click
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
+    });
+  </script>
+</dom-module>

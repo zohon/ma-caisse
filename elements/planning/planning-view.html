@@ -1,0 +1,81 @@
+<!--
+@license
+Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+<link rel="import" href="../../bower_components/paper-fab/paper-fab.html">
+<link rel="import" href="planning-list.html">
+
+<dom-module id="planning-view">
+
+  <template>
+
+    <style>
+      :host {
+        display: block;
+        -webkit-user-select: none; /* Chrome/Safari */        
+        -moz-user-select: none; /* Firefox */
+        -ms-user-select: none; /* IE10+ */
+        /* Rules below not implemented in browsers yet */
+        -o-user-select: none;
+        user-select: none;
+              
+      }
+      paper-fab {
+          position: fixed;
+          bottom:15px;
+          right:15px;
+      }
+
+      paper-item {
+        background: var(--accent-color);
+        color: var(--text-primary-color);
+        cursor: pointer;
+        margin-bottom: 5px;
+      }
+
+    </style>
+
+    <paper-item on-click="add">
+      <paper-item-body two-line>
+        <div>Create an planning item</div>
+        <div secondary></div>
+      </paper-item-body>
+      <paper-ripple></paper-ripple>
+    </paper-item>
+
+    <planning-list plannings="{{plannings}}" filter-by="{{route}}" on-delete="delete"></planning-list>
+    
+  </template>
+  <script>
+    Polymer({
+      is: 'planning-view',
+      properties: {
+        plannings: Array,
+        route: String,
+      },
+      add: function(e) {
+        this.push('plannings', {
+          creationDate : new Date().getTime(),
+          nb :0,
+          nbMax :0,
+        });
+      },
+      setschedule : function(datas) {
+        $(this).find('planning-list').get(0).setschedule(datas);
+      },
+      delete: function(e) {
+        this.arrayDelete('plannings', e.detail.planning);
+      },
+      reset:function() {
+        _.each(this.plannings, _.bind(function(planning, index) {
+          this.set('plannings.'+index+'.nb', planning.nbMax);
+        }, this));
+      }
+    });
+  </script>
+</dom-module>

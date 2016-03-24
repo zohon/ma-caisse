@@ -1,0 +1,138 @@
+/*
+Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+*/
+
+@font-face {
+    font-family: "ostrich";
+    src: url("fonts/ostrich_sans_inline-regular-webfont.woff2");
+}
+
+@font-face {
+    font-family: "fredoka";
+    src: url("fonts/fredoka.woff2");
+}
+
+@font-face {
+    font-family: "Roboto";
+    src: url("fonts/Roboto.woff2");
+}
+
+body {
+  background: #fafafa;
+  font-family: 'Roboto', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  color: #333;
+}
+
+.clear-btn {
+  font-size: 14px;
+}
+
+::-webkit-scrollbar {
+  width: 2px;
+}
+ 
+::-webkit-scrollbar-track {
+  background :  #BBDEFB !important;
+}
+ 
+::-webkit-scrollbar-thumb {
+  background :  #2196F3 !important;
+}
+
+
+#drawer {
+  z-index: 100;
+}
+
+paper-toast {
+  z-index: 200;
+}
+
+#dropShadow.paper-header-panel {
+	opacity: 0.8 !important;
+	left: -100% !important;
+}
+
+.person .print:hover {
+   color: #fff;
+   background: #000;
+   border-radius: 50%;
+}
+
+@media print {
+
+  body * { visibility: hidden; }
+
+  order-item * { visibility: visible; }
+  
+  #drawer { display: none; }
+  #main { left: 0 !important; }
+  #mainToolbar {
+    visibility: visible;
+  }
+  paper-item {
+    display: none !important;
+  }
+  .app-name {
+    visibility: visible;
+  }
+
+  .person {
+    background: #FFF;
+  }
+
+  .orderProduct .value {
+    color: #333;
+    justify-content: flex-end;
+    position: absolute;
+    right: 0;
+    top: 10px;
+    display: block;
+  }
+
+  .middle-container {
+    margin: 0 !important;
+    color:#000;
+  }
+
+  .total {
+  display: block !important;
+  }
+
+  #drawerToolbar.main-view, #mainToolbar.main-view {
+    background: #FFF !important;
+    border-bottom:1px solid #000 !important;
+  }
+
+  .person .name {
+    font-size: 35px;
+  }
+
+  .content {
+    padding:0 !important;
+  }
+
+  .person .avatar {
+    display: none !important;
+  }
+
+  .person .print,
+  .person .planned {
+    display: none;
+  }
+
+  order-item-product.order-item {
+    display: block !important; 
+    border: 1px solid #DDD;
+    cursor: pointer;
+    margin-bottom: 5px;
+    padding: 15px;
+    font-size: 25px;
+  }
+
+}

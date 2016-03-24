@@ -1,0 +1,338 @@
+<!--
+@license
+Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+<link rel="import" href="../../bower_components/paper-fab/paper-fab.html">
+<link rel="import" href="order-list.html">
+<link rel="import" href="../select-product/select-product-view.html">
+
+<link rel="import" href="../../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+
+
+
+<dom-module id="order-view">
+
+  <template>
+
+    <style>
+      :host {
+        display: block;
+        -webkit-user-select: none; /* Chrome/Safari */        
+        -moz-user-select: none; /* Firefox */
+        -ms-user-select: none; /* IE10+ */
+        /* Rules below not implemented in browsers yet */
+        -o-user-select: none;
+        user-select: none;
+
+        /* Label and underline color when the input is not focused */
+        --paper-input-container-color: var(--text-primary-color);
+
+        /* Label and underline color when the input is focused */
+        --paper-input-container-focus-color: var(--text-primary-color);
+
+        /* Label and underline color when the input is invalid */
+        --paper-input-container-invalid-color: var(--text-primary-color);
+
+        /* Input foreground color */
+        --paper-input-container-input-color: var(--text-primary-color);
+      }
+      paper-fab {
+          position: fixed;
+          bottom:15px;
+          right:15px;
+      }
+
+      paper-item {
+        background: var(--accent-color);
+        color: var(--text-primary-color);
+        cursor: pointer;
+        margin-bottom: 5px;
+      }
+
+      .returnback {
+        background: var(--light-primary-color);
+        color: var(--text-primary-color);
+        padding:0;
+      }
+
+      .returnback .icon {
+        height:45px;
+        width:45px;
+      }
+
+      .orderActions .editing {
+        display: none !important;
+      }
+
+      paper-input {
+        color: var(--text-primary-color) !important;
+        width: 100%;
+      }
+
+      .actionList {
+        background: var(--accent-color);
+        color: var(--text-primary-color);        
+        transition : all 0.2s ease;
+        position : relative;
+        height : 50px;
+        font-size: 18px;
+        margin-bottom: 5px;
+        box-shadow: 0 4px 2px -2px rgba(0,0,0,0.2);        
+      }
+
+      .actionList.active,
+      .actionList:hover {
+        box-shadow  : 0px 2px 2px 0px rgba(0,0,0,0.2);
+      }
+
+      .actionList .add {
+        height      : 50px;    
+        padding     : 0 10px;
+        position    : relative;
+        display     : flex;
+        align-items : center;
+        cursor      : pointer;         
+      }
+
+      .actionList .search {
+        background  : var(--default-primary-color);
+        color       : var(--text-primary-color);
+        position    : absolute;
+        right       : 0;
+        top         : 0;
+        padding     : 0 10px;
+        height      : 50px;
+        display     : flex;
+        align-items : center;
+        cursor      : pointer;    
+      }
+
+      .actionList .search iron-icon {
+        height  : 35px;
+        width   : 35px;
+      }
+
+      .actionList .searchinput {
+        background  : none;
+        border      : none;
+        width       : 95%;
+        height      : 100%;
+        font-size   : 25px;
+        padding     : 0 0px 0 10px;
+        color       : #FFF;        
+      }
+
+    </style>
+
+    <div class="actionList" hidden="{{_onlyhide(selectProduct)}}">
+
+      <div class="add" on-tap="add" hidden="{{searchform}}"><iron-icon icon="icons:add-circle"></iron-icon>&nbsp;Create an order<paper-ripple></paper-ripple></div>
+
+      <form style="height: 100%;" onsubmit="return false;">
+        <input hidden="{{!searchform}}" type="number" value="{{search::input}}" on-keydown="_checkKey" class="searchinput" id="searchinput" autocomplete="off"></input>
+
+        <div class="search" on-tap="searching">
+          <iron-icon hidden="{{!search}}" icon="icons:check-circle"></iron-icon>
+          <iron-icon hidden="{{search}}" icon="icons:search"></iron-icon>
+        <paper-ripple></paper-ripple></div>
+      </form>
+
+    </div>
+
+    <paper-item class="returnback" class="actionList" on-click="unselect" hidden="{{_onlyhideList(search,selectProduct)}}">
+      <paper-item-body two-line>
+        <div><iron-icon class="icon" icon="icons:chevron-left" ></iron-icon>Return list</div>
+        <div secondary></div>
+      </paper-item-body>
+      <paper-ripple></paper-ripple>
+    </paper-item>
+
+    <order-list  id="elementorderlist" orders="{{orders}}" search="{{search}}" on-delete="delete" on-validorder="validorder" on-selectitem="selectitem" on-selectorder="selectorder" on-changeorder="changeOrder" ></order-list>
+
+    <div class="orderActions">
+      <select-product-view hidden="{{!selectProduct}}" id="productsSelectList" products="{{products}}" filter-by="{{filterProduct}}" on-addproduct="_addproduct"></select-product-view>
+    </div>
+
+  </template>
+  <script>
+    Polymer({
+      is: 'order-view',
+      properties: {
+        products: Array,
+        route: String,
+        selectProduct : {
+          type : Boolean,
+          value: false,
+          observer : '_changeSelectProduct'
+        },
+        theOrder : {
+          type : Object,
+          value: false,
+          notify: true,
+        },
+        searchform : {
+          value : false
+        },
+        search : {
+          value : false        
+        },
+        filterProduct : {
+          value : 'plat'
+        }   
+      },
+      _checkKey: function(e) {
+        if (e.keyCode === 13) {
+          this.searchingItem();
+        }
+      },
+      refresh : function() {
+        console.log("order view refresh");
+        this.$.productsSelectList.refresh();
+      },
+      searchingItem : function() {
+        if(!this.search) {
+          return false;
+        }
+        this.$.searchinput.blur();
+      },  
+      searching : function() {
+        console.log("searching");
+        if(this.searchform) {
+
+          if(this.search){
+            this.set('search', "");
+            setTimeout(function() {
+              this.$.searchinput.focus();
+            }.bind(this), 100);          
+          } else {
+            this.set('searchform', false);
+          }
+
+        } else {
+          this.set('searchform', true);
+          setTimeout(function() {
+            this.$.searchinput.focus();
+          }.bind(this), 100);
+        }
+ 
+      },
+      _changeSelectProduct : function(data) {
+
+        if(data) {
+          this.$.productsSelectList.showItems();
+        } else {
+          this.$.productsSelectList.hideItems();
+        }
+
+        this.switchItemOrder();
+      },
+      switchItemOrder : function() {
+
+        if(this.selectProduct) {
+          $(this).find('order-item.active').removeClass('active');
+          $(this).find('order-item').addClass('hidden');
+        } else {
+          $(this).find('order-item.active').removeClass('active');
+          $(this).find('order-item.hidden').removeClass('hidden');
+        }
+
+      },           
+      _onlyhide : function(elem1) {
+        if (elem1) {
+          return true;
+        }
+        return false;
+      },
+      _onlyhideList : function(elem1, elem2) {
+        if (elem1 || !elem2 ) {
+          return true;
+        }
+        return false;
+      },      
+      resetSearch : function() {
+        this.set("search", false);
+      },
+      ready : function() {
+
+      },
+      selectitem : function(e) {
+        $(this).find('order-item.active').removeClass('active');
+        $(this).find('order-item').addClass('hidden');
+      },
+      unselect : function(e) {
+        this.set('activeOrder', "");
+        this.set('selectProduct', false);
+      },
+      selectorder : function(e) {
+
+        if(this.activeOrder && this.activeOrder.detail.label == e.detail.label) {
+          this.set('activeOrder', "");
+          this.set('selectProduct', false); 
+        } else {
+          this.set('activeOrder', e);
+          this.set('theOrder', e.detail);
+          this.set('selectProduct', true);           
+        }
+
+      },
+      changeOrder : function(e) {
+
+        if(this.activeOrder && this.activeOrder.detail.__firebaseKey__ == e.detail.__firebaseKey__) {
+          this.set('selectneeds',  e.detail.needs);
+          this.set('selectschedule',  e.detail.schedule);
+        }
+
+      },
+      _addproduct : function(e, product) {
+        if(this.activeOrder) {
+          this.activeOrder.target.associateProduct(product);
+        }
+      },   
+      add: function(e) {
+
+        var item = {
+          label: "",
+          creationDate : new Date().getTime(),
+        };
+
+        this.push('orders', item);
+
+
+        setTimeout(function() {
+          console.log('editnew order-view');          
+          this.$.elementorderlist.editnew(item);
+        }.bind(this), 10);
+        
+
+      },
+      delete: function(e) {
+
+        console.log("delete");
+
+
+        if(this.activeOrder && this.activeOrder.detail.label == e.detail.order.label) {
+            this.set('selectProduct', false);
+            this.set('activeOrder', "");
+        }
+
+        this.set('activate', false);
+        this.set('activeOrder', "");
+        $(this).find('order-item.active').removeClass('active');
+        $(this).find('order-item.hidden').removeClass('hidden');
+        console.log("delete ici");
+        this.arrayDelete('orders', e.detail.order);
+      },
+      reset : function() {
+        _.each($(this).find('order-item'), _.bind(function(item, index) {
+          $(item).get(0).destroy();
+        },this));
+      }
+    });
+  </script>
+</dom-module>

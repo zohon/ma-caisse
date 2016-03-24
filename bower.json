@@ -1,0 +1,29 @@
+{
+  "name": "la-note",
+  "private": true,
+  "dependencies": {
+    "polymer": "Polymer/polymer#master",
+    "iron-elements": "PolymerElements/iron-elements#^1.0.0",
+    "paper-elements": "PolymerElements/paper-elements#^1.0.1",
+    "platinum-elements": "PolymerElements/platinum-elements#^1.0.1",
+    "neon-elements": "PolymerElements/neon-elements#^1.0.0",
+    "page": "visionmedia/page.js#^1.6.3",
+    "firebase-element": "GoogleWebComponents/firebase-element#61-kschaaf-local-key",
+    "jquery": "~2.1.4",
+    "underscore": "~1.8.3",
+    "google-map": "GoogleWebComponents/google-map#~1.1.2",
+    "paper-dialog": "PolymerElements/paper-dialog#~1.0.2",
+    "paper-slider": "PolymerElements/paper-slider#~1.0.9",
+    "neon-animation": "PolymerElements/neon-animation#~1.1.0",
+    "polymer-color-picker": "~1.0.1"
+  },
+  "devDependencies": {
+    "web-component-tester": "*",
+    "test-fixture": "PolymerElements/test-fixture#^1.0.0"
+  },
+  "resolutions": {
+    "polymer": "master",
+    "paper-styles": "^1.0.0",
+    "neon-animation": "^1.0.0"
+  }
+}

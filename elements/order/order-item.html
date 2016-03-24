@@ -1,0 +1,880 @@
+<!--
+@license
+Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="order-item-product.html">
+<dom-module id="order-item">
+
+  <template>
+
+  <style is="custom-style">
+
+    :host {
+      font-family: Roboto, Helvetica, Arial, sans-serif;
+      display: block; 
+      background: #FFF;
+
+      -webkit-user-select: none; /* Chrome/Safari */        
+      -moz-user-select: none; /* Firefox */
+      -ms-user-select: none; /* IE10+ */
+      /* Rules below not implemented in browsers yet */
+      -o-user-select: none;
+      user-select: none;
+      transition: all 0.2s ease;
+      box-shadow: 0 0px 2px rgba(0,0,0,0.16),0 0px 2px rgba(0,0,0,0.08);
+    }
+
+    :host.active,
+    :host:hover {
+      box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 1px 5px 0 rgba(0, 0, 0, 0.12), 0 3px 1px -2px rgba(0, 0, 0, 0.2);
+    }
+
+    :host.active {
+      display: block !important;
+    }
+
+    :host.hidden {
+      display: none;
+    }
+
+
+    paper-item:focus:before {
+      background : none;
+    }
+
+    paper-item .avatar {
+      font-family: var(--special-font-family);
+      display: inline-block;
+      height: 40px;
+      overflow: hidden;
+      line-height: 40px;
+      text-align: center;
+      text-transform: uppercase;
+      color: var(--accent-color);
+      font-size: 50px;
+      transition : all 0.4s ease;
+    }
+    .active paper-item .avatar {
+        background: var(--accent-color);
+    }
+    .delete {
+        position: absolute;
+        top:10px;
+        left:-45px;
+        display: inline-block;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        overflow: hidden;
+        background: var(--alert-background);
+        line-height: 35px;
+        text-align: center;
+        text-transform: uppercase;
+        color: var(--alert-color);
+        font-size: 20px;
+        z-index: 90;
+        box-shadow: 0 1px 5px rgba(0,0,0,0.23),0 1px 0px rgba(0,0,0,0.16);
+    }
+
+    .edit {
+        display: flex;
+        justify-content: center;
+        position: absolute;
+        align-items: center;
+        top:10px;
+        right:-50px;
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        overflow: hidden;
+        background: var(--default-primary-color);
+        text-align: center;
+        text-transform: uppercase;
+        transition: all 0.2s ease;
+        color: var(--alert-color);
+        font-size: 20px;
+        z-index: 0;
+        box-shadow: 0 1px 5px rgba(0,0,0,0.23),0 1px 0px rgba(0,0,0,0.16);
+        z-index: 100;
+    }
+    
+    .active .edit {
+     /* right : 10px;*/
+    }
+
+    .print{
+      display: inline-block;
+      width: 40px;
+      height: 40px;
+      overflow: hidden;
+      margin-right: 10px;
+      line-height: 35px;
+      text-align: center;
+      text-transform: uppercase;
+      transition: all 0.2s ease;
+      font-size: 20px;
+      z-index: 0;
+      box-shadow: 0 1px 5px rgba(0,0,0,0.23),0 1px 0px rgba(0,0,0,0.16);
+    }
+
+    .select {
+        position: absolute;
+        top:10px;
+        left:-45px;
+        display: inline-block;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        overflow: hidden;
+        background: var(--accent-color);
+        line-height: 35px;
+        text-align: center;
+        text-transform: uppercase;
+        transition: all 0.2s ease;
+        color: var(--alert-color);
+        font-size: 20px;
+        z-index: 0;
+        box-shadow: 0 1px 5px rgba(0,0,0,0.23),0 1px 0px rgba(0,0,0,0.16);
+    }   
+
+    .select:hover {
+        background: var(--valid-background);
+        color: var(--valid-color);
+    }
+    
+    .planned {
+        position: absolute;
+        top:10px;
+        right:10px;
+        display: inline-block;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        overflow: hidden;
+        background: var(--accent-color);
+        line-height: 35px;
+        text-align: center;
+        text-transform: uppercase;
+        transition: all 0.2s ease;
+        color: var(--alert-color);
+        font-size: 20px;
+        z-index: 0;
+        box-shadow: 0 1px 5px rgba(0,0,0,0.23),0 1px 0px rgba(0,0,0,0.16);
+    }
+
+    .active .select {
+      left : 10px;
+    }    
+
+    paper-item {
+      position: relative;
+      margin: 0 ;
+      display: flex;
+      text-decoration: none;
+      overflow: hidden;
+      padding: 10px;
+    }
+
+    :focus {
+      outline: none;
+    }
+
+    paper-item .avatar{
+        display: block;
+        float:left;
+        margin-right: 10px;
+    }
+
+    paper-item paper-item-body {
+        display: block;
+        float:left;
+        max-width: 80%;
+    }
+
+    paper-item .total {
+        position: absolute;
+        right: 15px;
+        top: 0;
+        height: 40px;
+        line-height: 65px;
+        font-size: 45px;
+        display: none;   
+    }
+
+    .person {
+      cursor: pointer;
+      transition: all 0.5s ease;
+    }
+
+      paper-item .secondary {
+        color: var(--secondary-text-color);
+        font-size: 13px;
+      }
+
+      paper-item .total {
+        color: var(--accent-color);
+      }
+
+      .name {
+        text-transform: capitalize;
+      }
+
+      .details {
+          display: block;
+          overflow: hidden;
+      }
+
+      paper-ripple {
+        color: var(--primary-background-color);
+      }
+
+      .inputlabel {
+
+      }
+
+      .editing {
+        padding: 5px 15px;
+        background: #423B36;
+      }
+
+      .editing iron-icon {
+        color:#FFF;
+      }
+
+      .customers {
+        position: absolute;
+        right:15px;
+        top:0;
+        line-height: 60px;
+      }
+
+      order-item-product {
+        cursor: pointer;
+        padding: 0px;
+        display: inline-block;
+        width:100%;
+        height: 35px;
+      }
+
+      paper-item-body {
+          line-height: 40px;
+      }
+
+      .listItemOrder {
+        background: var(--light-primary-color);
+        padding: 5px 5px 0px;
+        max-height: 77px;
+        overflow-x: hidden;
+      }
+
+      .listItemOrder ::-webkit-scrollbar {
+          width: 2px;
+      }
+
+      .schedule {
+        color: var(--accent-color);
+        line-height: 40px;
+        margin-right: 10px;
+        font-size: 25px;        
+      }
+
+      .showInfo {
+        padding: 5px 5px;
+        color : var(--alert-color);
+        background: var(--alert-background);
+
+        cursor:pointer;
+      }
+
+      .showInfo:hover {
+
+      }
+
+      .showInfo iron-icon {
+
+      }
+      
+      .showInfo span{
+        margin-left: 5px;
+      }
+
+
+      #validater {
+        height: 45px;
+        width: 45px;
+        position: absolute;
+        right: 10px;
+        background: #ccc;
+      }
+
+      #validater.true {
+        background: var(--accent-color) !important;
+      }        
+
+    </style>
+    
+  <div class$="[[_getClass(active, 'content')]]" class="content" >
+
+    <paper-item tabindex="0" class="person" on-track="handleTrack" on-tap="onTap">
+
+        <div class="avatar" hidden="{{order.schedule}}" item-icon>{{_getAvatar(order.label)}}</div>
+
+          <paper-item-body two-line>
+            <div class="name" hidden="{{!_getInfoList(order.list.*)}}">{{_getInfoList(order.list.*)}}<span>&nbsp;Plat</span></div>
+          </paper-item-body>
+
+      <div class="delete" item-icon><iron-icon icon="icons:delete"></iron-icon><paper-ripple></paper-ripple></div>
+
+      <paper-fab icon="check" id="validater" on-tap="_validate" class$="{{order.active}}" ></paper-fab>
+
+      <div class="edit" item-icon on-tap="_selectEdit"><iron-icon icon="editor:mode-edit"></iron-icon><paper-ripple></paper-ripple></div>
+
+      <div class="select" item-icon on-click="select" hidden="{{edit}}"><iron-icon icon="icons:check"></iron-icon><paper-ripple></paper-ripple></div>
+
+      <div class="planned" hidden="{{!order.schedule}}" item-icon on-click="selectpayement" ><iron-icon icon="editor:attach-money"></iron-icon><paper-ripple></paper-ripple></div>
+
+      <div class="total">{{_getTotal(order.list.length)}}</div>
+
+    </paper-item>
+
+    <div class="editing" hidden="{{!edit}}">
+      <paper-input on-click="_dontListen" value="{{order.label}}" on-keydown="_checkKey" class="short" label="label" ><div suffix><iron-icon icon="icons:done" on-click="desactivate"></iron-icon></div></paper-input>
+
+      <paper-input on-click="_dontListen" value="{{order.infos}}" on-keydown="_checkKey" class="short" label="Infos" ><div suffix><iron-icon icon="icons:done" on-click="desactivate" ></iron-icon></div></paper-input>    
+    </div>
+
+    <div class="showInfo" on-click="_selectEdit" hidden="{{!order.infos}}"><iron-icon icon="icons:warning"></iron-icon><span>{{order.infos}}</span></div>
+
+    <div id="listItemOrder" class="listItemOrder" hidden="{{!order.list.length}}" on-click="_dontListen">
+      <template  is="dom-repeat" items="{{order.list}}" as="item" observe="{{stocks.length}}">
+      <order-item-product item="{{item}}" on-deleteitem="deleteItem" on-changeitem="getAllNeed"></order-item-product>
+      </template>
+    </div>
+
+
+
+  </div>
+
+  </template>
+  <script>
+    Polymer({
+
+      is: 'order-item',
+
+      properties: {
+        order: {
+          type : Object,
+          //observer : "observeChange"
+        },        
+        edit : {
+          type : Boolean,
+          value: false,
+        }
+      },
+      observers : [
+        'listenList(order.list.length)'
+      ],
+      _getInfoList : function(data) {
+
+        var result = _.filter(this.order.list, function(data){ return data.type == "plat"; });
+        return result.length;
+      },
+      listenList : function(length) {
+        console.log("goDown "+length);
+
+        if(!this.lastcount || this.lastcount != length) {
+
+          if(this.lastcount && this.lastcount < length) {
+
+            var heightItem = length*35;
+
+             $(this.$.listItemOrder).animate({
+                scrollTop: heightItem
+            }, 500);
+
+          }
+
+          this.lastcount = length;
+        }
+
+      },
+      ready : function() {
+        this.setScrollDirection('y', $(this).find('paper-item').get(0));
+      }, 
+      _getquery : function(label, adress) {
+        return label+" "+adress;
+      },
+      _plannedListen : function(data1, data2) {
+
+        if (data1 && data2) {
+          return true;
+        } else {
+          return false;  
+        }
+
+      },
+      _getTotal : function() {
+        var total = 0;
+        
+        if(this.order && this.order.list) {
+          $.each(this.order.list, function(index, data) {
+            total += data.nb*data.value;
+          });
+
+          return total+'€'; 
+        }
+
+      },
+      deleteItem : function(e) {
+        this.arrayDelete('order.list', e.detail);
+      },
+      associatePlanning : function(datas) {
+
+        if(this.order.schedule) {
+          var oldShcedule = this.order.schedule;
+        }
+
+        var needs = this.getAllNeed();
+
+        if(this.order.schedule == datas.hour+"h"+datas.min) {
+
+          this.set('order.schedule', "");
+          this.fire('changeorder', this.order);
+
+          var infos = {
+            needs : needs
+          };
+
+          if(oldShcedule) {
+            infos.old = oldShcedule;
+          }
+
+          this.fire('setschedule', infos);
+
+        } else {
+
+
+          var schedule = (datas.hour? datas.hour : "00")+"h"+(datas.min? datas.min : "")
+
+          this.set('order.schedule', schedule);
+          this.fire('changeorder', this.order);
+
+          var infos = {
+            label : datas.hour+"h"+datas.min,
+            needs : needs
+          };
+
+          if(oldShcedule) {
+            infos.old = oldShcedule;
+          }
+
+          this.fire('setschedule', infos);
+
+        }
+      },
+      getAllNeed : function() {
+
+        var totalNeed = 0;
+
+        _.each(this.order.list, _.bind(function(order, index) {
+          if(order.need) {
+            totalNeed += parseInt(order.need)*parseInt(order.nb);
+          }
+        },this));
+
+        if(!this.order.needs || this.order.needs != totalNeed) {
+
+
+          if(this.order.schedule && this.order.needs) {
+
+              $('planning-item.active').removeClass('active');
+
+              this.fire('setschedule', {
+                old : this.order.schedule,
+                needs : this.order.needs
+              });
+              this.set('order.schedule', "");
+          }
+
+          this.set('order.needs', totalNeed);
+          this.fire('changeorder', this.order);
+        }
+
+        return totalNeed;
+      },
+      associateProduct : function(product) {
+        console.log("associateProduct");
+        console.log(product);
+
+        if(!this.order.list) {
+          this.set('order.list', []);
+        }
+
+        this.push('order.list', product);
+      },
+      getNeed : function(item) {
+
+        needs = 0;
+
+        if(item.steak) {
+          needs += parseInt(item.steak);
+        }
+
+        return needs;
+      },
+      editnew : function(item) {
+
+        console.log('editnew');
+        console.log(item);
+        console.log(this.order);
+
+        if(item.creationDate == this.order.creationDate && !this.order.label) {
+          this._selectEdit();
+        }
+
+      },
+      observeChange : function(datas) {
+
+        if(datas) {
+
+          if(!datas.label) {
+
+            //this._selectEdit();
+
+            /*
+            if(datas.creationDate) {
+              var diffDate = new Date().getTime() - datas.creationDate;
+              console.log(diffDate);
+              if(diffDate < 1000) {
+                setTimeout(_.bind(function() {
+                  this._selectEdit();
+                },this), 100);
+              }
+            }
+            */
+
+          }
+
+        }
+
+      },      
+      onTap : function() {
+        if(this.order.label) {
+          if(this.active) {
+            this.desactivate();
+          } else {
+            this.activate(); 
+            this.select();
+          } 
+        }
+      },      
+      activate : function() {
+        this.active = 'active';
+        this.fire('activate', {order : this.order});
+      },
+      desactivate : function() {       
+        this.active = false;
+        this.edit = false;
+        this.fire('desactivate', {order : this.order});
+      },
+      printMe : function(e) {
+        if(e) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+
+        this.fire('selectitem', this.order);
+        $(this).addClass('active');
+        window.print();
+        /*
+        window.open('print.html?'+$.param({
+          label : this.order.label,
+          schedule : this.order.schedule,
+          items : JSON.stringify(this.order.list)
+         }) ); 
+        */
+      },
+      select : function(e) {
+        if(e) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+
+        this.active = false;
+        this.edit = false;
+
+        this.fire('selectorder', this.order);
+        $(this).addClass('active');
+
+      },
+      selectplanned : function(e) {
+        if(e) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+
+        this.active = false;
+        this.edit = false;
+
+        this.fire('selectorderplanned', this.order);
+        $(this).addClass('active');
+      },
+      selectpayement : function(e) {
+        if(e) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+
+        this.active = false;
+        this.edit = false;
+
+        this.fire('selectorderpayement', this.order);
+        $(this).addClass('active');
+      },
+      _getCustomersNumber : function(taget) {
+        var nbr = 0;
+        if(taget.customers) {
+          nbr = Object.size(taget.customers);
+        }
+        return nbr;
+      },
+      _getClass : function(target, others) {
+
+        if(target) {
+          return target+" "+others;
+        } else {
+          return others;
+        }
+
+      },
+      _dontListen : function(e) {
+        if(e) {        
+          e.preventDefault();
+          e.stopPropagation();
+        }
+      },
+      _validate : function(e) {
+
+        this._dontListen(e);
+
+        console.log("_validate");
+
+        if(this.order.active) {
+          this.set('order.active', false);
+        } else {
+          this.set('order.active', true);
+        }
+
+      },
+      _selectEdit : function(e) {
+
+        this._dontListen(e);
+
+        if(this.edit) {
+          this.edit = false;
+          
+          $(this).find('.edit').css({
+            right :'-50px'
+          });
+
+        } else {
+          this.edit = true;
+          $(this).find('paper-input input').get(0).focus();
+        }
+
+      },
+      _getAvatar : function(name) {
+        if(name) {
+          return name;
+        } else {
+          return "?";
+        }
+      },
+      _checkKey: function(e) {
+        if (e.keyCode === 13) {
+          this.desactivate();
+        }
+      },
+      _onDelete: function() {
+
+        if(this.order.schedule && this.order.needs) {
+            this.fire('setschedule', {
+              old : this.order.schedule,
+              needs : this.order.needs
+            });
+        }
+
+        this.fire('changeorder', this.order);
+
+        this.fire('delete-order', {order: this.order});
+      },
+
+      handleTrack: function(e) {
+
+        if(!this.trackInfo) {
+            this.trackInfo = {};
+        }
+
+        var message;
+
+        switch(e.detail.state) {
+          case 'start':
+            message = 'Tracking started!';
+
+            this.trackInfo.start = {
+              x : e.detail.x,
+              y : e.detail.y,
+            };
+
+            break;
+          case 'track':
+            message = 'Tracking in progress... ' +
+              e.detail.x + ', ' + e.detail.y;
+            this.trackInfo.progress = {
+              x : e.detail.x,
+              y : e.detail.y,
+            };
+
+            break;
+          case 'end':
+            message = 'Tracking ended!';
+            this.trackInfo.end = {
+              x : e.detail.x,
+              y : e.detail.y,
+            };
+
+
+            break;
+        }
+
+        this.calcTrack(e);
+
+      },
+      calcTrack : function(e) {
+
+        if(this.onDestroy) {
+          return false;
+        }
+
+        if(this.trackInfo && this.trackInfo.start && this.trackInfo.progress) {
+
+
+          var diffY = Math.abs(this.trackInfo.progress.y - this.trackInfo.start.y);
+          var diffX = Math.abs(this.trackInfo.progress.x - this.trackInfo.start.x);
+
+          if(diffY < diffX) {
+
+            if(this.trackInfo.start.x > this.trackInfo.progress.x) {
+
+              var percent = diffX/$(this).width();
+              var left = (150*percent);
+
+              if(left >= 10) {
+                left = 10;
+              }
+              if(!this.edit) {
+                $(this).find('.edit').css({
+                  right : left+"px",
+                  transition : "height 0.5s ease"                
+                });
+
+                if(diffX > 50) {
+                  this._selectEdit();
+                }
+              }
+
+            } else if(this.trackInfo.start.x < this.trackInfo.progress.x) {
+
+              var percent = diffX/$(this).width();
+              var left = -50+(150*percent);
+
+              if(left >= 10) {
+                left = 10;
+              }
+
+              $(this).find('.delete').css({
+                left : left+"px",
+                transition : "height 0.5s ease"
+              });
+
+              if(diffX > $(this).width()/2) {
+                this.destroy();
+              }
+            }
+
+          } else {
+
+            if(this.trackInfo.start.y > this.trackInfo.progress.y) { // slide top
+              /*
+                $(this).css({
+                  'margin-top' : diffY,
+                });   
+              */ 
+              if(diffY > 100) {
+              
+              }
+            } else if(this.trackInfo.start.y < this.trackInfo.progress.y) { // slide bottom
+/*
+                $(this).css({
+                  'margin-bottom' : diffY,
+                });
+*/
+              if(diffY > 100) {
+
+              }
+            }
+
+          }
+        }
+
+
+        if(e.detail.state == 'end' && !this.edit) {
+            this.trackInfo = {};
+            $(this).find('.edit').css({
+              right : "-50px",
+              transition : "all 0.5s ease"               
+            });
+        }
+
+
+        if(e.detail.state == 'end' && !this.onDestroy) {
+            this.trackInfo = {};
+            $(this).find('.delete').css({
+                left : "-50px",
+                transition : "all 0.5s ease"
+            });
+        }
+
+      },
+
+      destroy : function(direction) {
+
+        if(!this.onDestroy) {
+
+          this.onDestroy = true;
+
+            $(this).css({
+              opacity : 0,
+              transition : "all 0.3s ease-out"
+            });
+
+
+          var that = this;
+          setTimeout(_.bind(function() {
+
+              this.fire('delete', {order : this.order});
+              $(this).remove();
+
+          },this), 300);
+        }
+
+      },
+    });
+  </script>
+</dom-module>

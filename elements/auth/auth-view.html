@@ -1,0 +1,296 @@
+<!--
+@license
+Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+
+<link rel="import" href="../../bower_components/firebase-element/firebase.html">
+<link rel="import" href="../../bower_components/neon-animation/animations/slide-from-bottom-animation.html">
+<link rel="import" href="../../bower_components/neon-animation/animations/scale-down-animation.html">
+<link rel="import" href="../../bower_components/paper-dialog/paper-dialog.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/paper-spinner/paper-spinner.html">
+
+<dom-module id="auth-view">
+
+  <template>
+
+    <style>
+      paper-dialog {
+        padding: 5px;
+      }
+
+      .loadingInfo {
+        text-align: center;
+        width: 100%;
+      }
+
+      .errorMessage {
+        background: var(--alert-background);
+        color: var(--alert-color);
+        padding: 5px;
+        box-shadow: 0 1px 1px 0px #aaa;
+      }
+
+      paper-dialog {
+        padding:0;
+        background: #FFF;
+      }
+
+      .unabletoconnect {
+        margin-bottom: 24px;
+        text-align: center;
+      }
+
+      .unabletoconnect iron-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: auto;
+        margin-bottom: 10px;
+        height: 45px;
+        left: 0;
+        top: 45%;
+        position: absolute;
+      }
+
+      .title {
+        background : var(--default-primary-color);
+        color : var(--text-primary-color);
+        margin:0;
+        padding: 10px;
+        font-size: 30px;
+        font-family: var(--special-font-family);
+      }
+
+      .online {
+        min-width: 210px;
+        padding: 0 15px;
+      }
+
+      .offline {
+        opacity : 0.2;
+        min-width: 210px;
+        pointer-events: none;
+        padding: 0 15px;
+      }
+
+      paper-button {
+        font-size:13px;
+      }
+
+    </style>
+
+    <paper-dialog class$="{{_getClass(status)}}" modal="with-backdrop" opened="{{_canOpen(user, network)}}" entry-animation="slide-from-bottom-animation" exit-animation="scale-down-animation">
+
+      <div class="title">Auth</div>
+
+      <div hidden="{{_canlog(user, network)}}" class="unabletoconnect">
+        <iron-icon icon="device:signal-wifi-off" ></iron-icon>
+      </div>
+
+      <div class$="{{_getClass(network)}}">
+
+        <div hidden="{{!errorMessage}}" class="errorMessage">{{errorMessage}}</div>
+
+        <paper-input required on-tap="_dontListen" id="inputemail" value="{{email}}" on-keydown="_checkKey" class="short" label="Login" ></paper-input>
+
+        <paper-input required type="password" on-tap="_dontListen" value="{{password}}" on-keydown="_checkKey" class="short" label="Password" ></paper-input>
+
+        <br>
+
+        <div hidden="{{!status}}" class="loadingInfo">
+          <paper-spinner active></paper-spinner>
+        </div>
+
+        <div  hidden="{{status}}">
+          <paper-button raised on-click="submit">Submit</paper-button>
+          <paper-button raised on-click="resetPassword" style="float:right;">Lost password</paper-button>
+
+        </div>
+
+      </div>
+    </paper-dialog>
+
+    <iron-localstorage name="auth" on-iron-localstorage-load="_backupLoaded" value="{{authData}}"></iron-localstorage>
+
+  </template>
+  <script>
+    Polymer({
+      is: 'auth-view',
+      properties: {
+        network : {
+          value :""
+        },
+        email : {
+          value :"contact@le-temps-des-mets.fr"
+        },
+        password : {
+          value :"le-temps-des-mets"
+        },                
+        status : {
+          value :""
+        },
+        errorMessage : {
+          value :""
+        },
+        user: {
+          notify: true
+        },
+        location: {
+          notify: true,
+          observer : 'initFirebase',
+        },        
+      },
+      _dontListen : function() {
+
+      },
+      _canlog : function(user, network) {
+
+        if(network != 'online') {
+          return false;
+        }
+
+        return true;
+      },
+      _canOpen : function(user, network) {
+
+        if(user) {
+          return false;
+        }
+
+        return true;
+      },
+      _checkKey: function(e) {
+        this.set('errorMessage', "");        
+        if (e.keyCode === 13) {
+          this.submit();
+        }
+      },
+      initFirebase : function() {
+        var ref =  new Firebase(this.location);
+        this.set('ref', ref);
+
+        this.listenConnection();
+        this.listenAuth();
+      },
+      listenConnection : function() {
+        this.ref.child('.info/connected').on('value', function(snap) {
+          if (snap.val() === true) {
+            /* we're connected! */
+            //console.log("we're connected!");
+            this.fire('online');
+
+          } else {
+            /* we're disconnected! */
+            //console.log("we're disconnected!");           
+            this.fire('offline');
+          }
+        }.bind(this));
+      },
+      listenAuth : function() {
+
+        this.ref.onAuth(function(authData) {
+          if (authData) {
+            //console.log("User " + authData.uid + " is logged in with " + authData.provider);
+            this.set('authData', authData);
+            this.fire('login', {user: authData});
+          } else {
+            //console.log("User is logged out");
+            this.set('authData', "");
+            this.fire('logout');
+          }
+        }.bind(this));
+
+      },
+      _backupLoaded : function() {
+        //console.log("_backupLoaded");
+      },
+      _getClass : function(data) {
+        return data;
+      },
+      submit : function() {
+
+        var valid = true;
+        this.set('errorMessage', "");
+
+        _.each($(this).find('paper-input'), function(target) {
+          if(!target.validate()) {
+            valid = false;
+          }
+        });
+
+        if(valid) {
+          this.set('status', 'loading');
+          this.signIn(this.email, this.password);
+        }
+
+      },
+      resetPassword : function() {
+
+        if(!this.$.inputemail.validate()) {
+          return false;
+        }
+
+        if(this.email) {
+          this.ref.resetPassword({
+            email : this.email
+          }, function(error) {
+            if (error === null) {
+              console.log("Password reset email sent successfully");
+            } else {
+              console.log("Error sending password reset email:", error);
+            }
+          });
+        }
+
+      },
+      logout : function() {
+        this.ref.unauth();
+        this.fire('logout');
+      },     
+      signIn: function(email, password) {
+
+        if(!this.ref) {
+          this.initFirebase();
+        }
+
+        this.ref.authWithPassword({
+          email    : email,
+          password : password
+        }, function(error, authData) {
+          if (error) {
+            console.log("Login Failed!", error);
+            this.showError(error);
+          } else {
+            //console.log("Authenticated successfully with payload:", authData);
+            this.userSuccess(authData);
+          }
+
+          this.set('status', '');
+        }.bind(this));
+
+      },
+      userSuccess : function(user) {
+        
+        this.set({
+          email : '',
+          password : ''
+        });
+
+        this.fire('login', {user: user});
+      },
+      showError : function(error) {
+        this.set('errorMessage', error.message);
+      },
+      signOut: function() {
+        this.user = null;
+      }
+    });
+  </script>
+</dom-module>

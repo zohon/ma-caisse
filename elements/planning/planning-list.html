@@ -1,0 +1,140 @@
+<!--
+@license
+Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+<link rel="import" href="../../bower_components/neon-animation/neon-animation-runner-behavior.html">
+<link rel="import" href="../../bower_components/neon-animation/animations/scale-up-animation.html">
+<link rel="import" href="../../bower_components/neon-animation/animations/fade-out-animation.html">
+
+<link rel="import" href="planning-item.html">
+
+<dom-module id="planning-list">
+
+  <template>
+
+    <style>
+      :host {
+        -webkit-user-select: none; /* Chrome/Safari */        
+        -moz-user-select: none; /* Firefox */
+        -ms-user-select: none; /* IE10+ */
+        /* Rules below not implemented in browsers yet */
+        -o-user-select: none;
+        user-select: none;
+      }
+
+      :host.lite {
+
+        padding: 0;
+        margin: 0;
+        list-style: none;
+        display: none;
+
+        flex-flow: row wrap;
+        justify-content: space-between;        
+      }
+
+      planning-item {
+        margin-bottom: 10px;
+      }
+    </style>
+
+    <template is="dom-repeat" items="{{plannings}}" as="planning" filter="{{_computeFilter(filter)}}" observe="isComplete" sort="_sort" observe="{{plannings.length}}">
+      <planning-item planning="{{planning}}" affichage="{{affichage}}" selectneeds="[[selectneeds]]" selectschedule="[[selectschedule]]"></planning-item>
+    </template>
+
+  </template>
+  <script>
+    Polymer({
+      is: 'planning-list',
+      behaviors : [Polymer.NeonAnimationRunnerBehavior],      
+      properties: {
+        tables: Array,
+        filter: {
+          type: String,
+          value: 'all'
+        },
+        affichage : {
+          type : String,
+          value: false,
+        },
+        selectneed : {
+          type : Number,
+          value: 0,
+        },
+        selectschedule : {
+          type : String,
+          value: false,
+        },
+        animationConfig: {
+          value: function() {
+            return {
+              'entry': {
+                name: 'scale-up-animation',
+                node: this,
+                timing : {duration : 200}
+              },
+               'exit': {
+                name: 'fade-out-animation',
+                node: this,
+                timing : {duration : 200}
+              }   
+            }
+          }
+        }         
+      },
+      listeners: {
+        'neon-animation-finish' : '_onNeonAnimationFinish'
+      },
+      showItems: function() {
+        this.show = true;
+        this.style.display = "flex";
+        this.playAnimation('entry');
+      },
+      _onNeonAnimationFinish  : function(){
+        if(this.show) {
+        } else {
+          this.style.display = "none";
+        }
+      },
+      hideItems : function() {
+        if(this.show) {
+          this.show = false;
+          this.style.display = "none";
+          //this.playAnimation('exit');
+        }
+      },           
+      _sort : function(a, b) {
+        if (a.hour*60+a.min === b.hour*60+b.min) return 0;
+        return a.hour*60+a.min < b.hour*60+b.min ? -1 : 1;
+      },
+      setschedule : function(datas) {
+        _.each($(this).find('planning-item'), function(view, index) {
+          view.setschedule(datas);
+        });        
+      },         
+      _computeFilter: function(filterBy) {
+
+        if (filterBy) {
+
+          // If filterBy is 'all', return a filter that always returns
+          // the todo
+          if (filterBy === 'all') {
+            return function(item) {
+              return item;
+            };
+          }
+
+          return function(item) {
+            return parseInt(item.nb) >= parseInt(filterBy);
+          };
+
+        }
+      }      
+    });
+  </script>
+</dom-module>

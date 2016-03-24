@@ -1,0 +1,243 @@
+<!--
+@license
+Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+<link rel="import" href="../../bower_components/paper-card/paper-card.html">
+
+<dom-module id="production-item">
+
+  <template>
+
+
+  <style is="custom-style">
+
+    :host {
+      font-family: Roboto, Helvetica, Arial, sans-serif;
+      display: block; 
+      background: #FFF;
+
+      -webkit-user-select: none; /* Chrome/Safari */        
+      -moz-user-select: none; /* Firefox */
+      -ms-user-select: none; /* IE10+ */
+      /* Rules below not implemented in browsers yet */
+      -o-user-select: none;
+      user-select: none;
+      transition: all 0.2s ease;
+      border :1px solid rgba(0,0,0,0.2);
+      margin-bottom: 5px;
+    }
+
+    .header {
+      background-color : var(--dark-primary-color);
+      color : var(--text-primary-color);
+      font-family : var(--special-font-family); 
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: relative;
+      z-index: 20;
+      height: 40px;
+      box-shadow: 0 3px 5px 0px rgba(0,0,0,0.2);
+    }
+
+    .title {
+      font-size: 25px;
+      padding-left: 5px;
+    }
+
+    .select {
+      display: flex;
+      height: 40px;
+    }
+
+    .select .type{
+      border-left: 1px solid #fff;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      font-size: 15px;
+      padding: 0 5px;
+      text-transform: uppercase;
+    }
+
+    .select .type.actif {
+      background-color: var(--accent-color);
+      color : var(--accent-text-color);
+    }
+
+    .content {
+      background: var(--light-primary-color);      
+    }
+
+    .supp {
+      margin-right: 1px;
+      padding: 0 5px;
+      font-size: 13px;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      border-left: 1px solid var(--accent-text-color);
+    }
+
+    .supplements {
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background-color: var(--accent-color);
+      color : var(--accent-text-color);
+      transform: skewX(-20deg);
+      padding-right: 10px;
+      margin-right: -10px;
+    }
+
+    .prod {
+      display: flex;
+      width: 100%;
+      overflow: hidden;
+      background-color: #FFF;
+      justify-content: space-between;
+      font-size: 18px;
+      height: 35px;
+      align-items: center;
+      border-top: 1px solid rgba(0,0,0,0.2);
+    }
+
+    .prod .label{
+      margin-left: 5px;
+    }    
+
+    .alert {
+      background-color: var(--alert-background);
+      color : var(--alert-color);
+      padding: 5px;
+    }
+
+    </style>
+    
+
+    <div>
+      <div class="header">
+        <span class="title">{{order.label}}</span>
+
+        <div class="select" hidden="{{!order.list}}">
+          <span hidden="{{!_getInfoList(order.list.*, 'entree', listprod)}}" class="type" on-tap="_selectFilter" class$="{{_gettypeclass(search, 'entree')}}">entree</span>
+          <span hidden="{{!_getInfoList(order.list.*, 'plat', listprod)}}" class="type" on-tap="_selectFilter" class$="{{_gettypeclass(search, 'plat')}}">plat</span>
+          <span hidden="{{!_getInfoList(order.list.*, 'boisson', listprod)}}" class="type" on-tap="_selectFilter" class$="{{_gettypeclass(search, 'boisson')}}">boisson</span>   
+        </div>
+
+      </div>
+      <div class="alert" hidden="{{!order.infos}}"><iron-icon icon="icons:warning"></iron-icon><span>{{order.infos}}</span></div>
+
+      <div class="content">
+        <template id="resultList" is="dom-repeat" items="{{order.list}}" as="item" filter="{{_computeFilter(search, listprod)}}" sort="_sort" observer="{{order.list.length}}">
+
+        <div class="prod">
+          <div class="label">{{item.label}}</div>
+          <div class="supplements" hidden="{{!_suppExist(item)}}">
+            <span class="cuisson supp" hidden="{{!item.cuisson}}" >{{item.cuisson}}</span>
+            <span class="sauce supp" hidden="{{!item.sauce}}" >{{item.sauce}}</span>
+            <span class="accompagnement supp" hidden="{{!item.accompagnement}}" >{{item.accompagnement}}</span>
+          </div>
+        </div>
+
+        </template>
+      </div>
+    </div>
+
+
+  </template>
+  <script>
+    Polymer({
+      is: 'production-item',
+      properties: {
+        production: {
+          type : Object,
+
+          //observer : "observeChange"
+        },
+        search : {
+          value : "all"
+        },
+        listprod : Array
+      },
+      ready : function() {
+        console.log("ready");
+        console.log(this.listprod);
+      },
+      _getInfoList : function(data, search, listprod) {
+        var result = _.filter(this.order.list, function(data){ return data.type == search; });
+
+        if(listprod.indexOf(search) < 0) {
+          return false;
+        }
+
+        return result.length;
+      },
+      _selectFilter : function(e) {
+        var search = $(e.target).html();
+
+        if(search == this.search) {
+          this.set('search', "all");
+        } else {
+          this.set('search', search); 
+        }
+
+      },
+      _gettypeclass : function(search, type) {
+
+        if(search == type) {
+          return 'type actif';
+        }
+        return 'type';
+      },
+      _suppExist : function(item) {
+
+        if(item.cuisson || item.sauce || item.accompagnement) {
+          return true;
+        }
+
+        return false;
+      },
+      _sort : function(a, b) {
+        if (a.type === b.type) return 0;
+        return a.type < b.type ? -1 : 1;
+      },
+      _computeFilter: function(filterBy, listprod) {
+
+        if(filterBy == 'all') {
+          return function(item) {
+            return listprod.indexOf(item.type) >= 0;
+          };
+        }
+
+        if (filterBy) {
+          return function(item) {
+            return item.type === filterBy;
+          };
+        }
+      },
+      _getAvatar : function(name) {
+        if(name) {
+
+          var hash  = 0;
+          for (var i = 0; i < name.length; i++) {
+             hash  = name.charCodeAt(i) + ((hash  << 5) - hash );
+          }
+
+          var c = (hash & 0x00FFFFFF).toString(16).toUpperCase();
+          var color =  "00000".substring(0, 6 - c.length) + c;
+          this.colorAvatar = "#"+color;
+          $(this).find('paper-icon-item .avatar').css('background', this.colorAvatar);
+    
+          return name.charAt(0);
+        }
+      },      
+    });
+  </script>
+</dom-module>

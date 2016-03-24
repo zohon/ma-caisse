@@ -1,0 +1,84 @@
+<!--
+@license
+Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+
+<link rel="import" href="production-item.html">
+
+<dom-module id="production-list">
+
+  <template>
+
+    <style>
+      :host {
+        display: block;
+        -webkit-user-select: none; /* Chrome/Safari */        
+        -moz-user-select: none; /* Firefox */
+        -ms-user-select: none; /* IE10+ */
+        /* Rules below not implemented in browsers yet */
+        -o-user-select: none;
+        user-select: none;
+      }
+      stock-item {
+        margin-bottom: 10px;
+      }
+    </style>
+
+
+    <template id="resultList" is="dom-repeat" items="{{orders}}" as="order" filter="{{_computeFilter(search)}}" sort="_sort" observer="{{orders.length}}" >
+
+      <production-item order="{{order}}" listprod="[[listprod]]"></production-item>
+      
+    </template>
+
+  </template>
+  <script>
+    Polymer({
+      is: 'production-list',
+      properties: {
+        listprod : Array,
+        orders: Array,
+        search: {
+          type: String,
+          value: 'all'
+        }        
+      },
+      observers : [
+        'refresh(orders.*)'
+      ],
+      refresh : function() {
+        this.$.resultList.render();
+      },          
+      _sort : function(a, b) {
+        if (a.label === b.label) return 0;
+        return a.label < b.label ? -1 : 1;
+      },      
+      _computeFilter: function(filterBy) {
+        if (filterBy) {
+
+          // If filterBy is 'all', return a filter that always returns
+          // the todo
+          if (filterBy === 'all') {
+            return function(item) {
+
+              if(!item.active) {
+                return false;
+              }
+
+              return item;
+            };
+          }
+
+          return function(item) {
+            return item.type === filterBy;
+          };
+        }
+      }      
+    });
+  </script>
+</dom-module>

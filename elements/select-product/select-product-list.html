@@ -1,0 +1,327 @@
+<!--
+@license
+Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+<link rel="import" href="../../bower_components/neon-animation/neon-animation-runner-behavior.html">
+<link rel="import" href="../../bower_components/neon-animation/animations/scale-up-animation.html">
+<link rel="import" href="../../bower_components/neon-animation/animations/fade-out-animation.html">
+<link rel="import" href="select-product-item.html">
+
+
+<dom-module id="select-product-list">
+
+  <template>
+
+    <style>
+      :host {
+        -webkit-user-select: none; /* Chrome/Safari */        
+        -moz-user-select: none; /* Firefox */
+        -ms-user-select: none; /* IE10+ */
+        /* Rules below not implemented in browsers yet */
+        -o-user-select: none;
+        user-select: none;
+
+        padding: 0;
+        margin: 0;
+
+      }
+
+      .list {
+        list-style: none;
+        flex-flow: row wrap;
+        justify-content: space-between;
+        display: flex;
+        min-height: 85px;       
+      }
+
+      select-product-item {
+        margin-bottom: 10px;
+      }
+
+      .filters {
+     
+        color: var(--accent-text-color);
+        background: var(--accent-color);   
+        text-shadow: 1px 1px rgba(0,0,0,0.2);
+        position: fixed;
+        bottom: 0;
+        right: 0;
+        width: 100%;
+        box-shadow: 0 0px 5px 1px rgba(0,0,0,0.2);
+        height: 25px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding-bottom: 3px;
+
+
+      }
+
+    </style>
+    <div on-track="handleTrack" class="list" id="theList">
+      <template  id="resultList" is="dom-repeat" items="{{products}}" as="product" filter="{{_computeFilter(filter-by, products)}}" observe="isComplete" sort="_sort" observe="{{products.length}}">
+        <select-product-item product="{{product}}" affichage="{{affichage}}" class$="[[affichage]]" on-selectproduct="selectproduct" ></select-product-item>
+      </template>
+
+      <div class="filters">{{filter-by}}</div>
+
+    </div>
+  </template>
+  <script>
+    Polymer({
+      is: 'select-product-list',
+      behaviors : [Polymer.NeonAnimationRunnerBehavior],
+      properties: {
+        products: {
+          type: Array
+        },
+        "filter-by": {
+          type: String,
+          value: 'all'
+        },
+        listType : {
+          value : ["entree", "plat" , "dessert", "boisson"]
+        },
+        animationConfig: {
+          value: function() {
+            return {
+              'entry': {
+                name: 'scale-up-animation',
+                node: this,
+                timing : {duration : 200}                
+              },
+               'exit': {
+                name: 'fade-out-animation',
+                node: this,
+                timing : {duration : 200}                
+              }   
+            }
+          }
+        }      
+      },      
+      listeners: {
+        'neon-animation-finish' : '_onNeonAnimationFinish'
+      },
+      observers : [
+        'refresh(products.*)'
+      ],
+      ready : function() {
+        this.setScrollDirection('y', this.$.theList);
+      },     
+      selectproduct : function(e, data) {
+        //console.log("list selectproduct");
+        //console.log(data);
+      },      
+      refresh : function() { 
+        console.log("select prod list refresh");
+        this.$.resultList.render();
+      },
+      showItems: function() {
+
+          this.show = true;
+          this.style.display = "flex";
+          this.playAnimation('entry');
+
+      },
+      hideItems : function() {
+        if(this.show) {
+          this.show = false;
+          this.style.display = "none";
+        }
+      },
+      _onNeonAnimationFinish  : function(){
+
+        if(this.show) {
+          
+        } else {
+          this.style.display = "none";
+        }
+
+      },
+      _sort : function(a, b) {
+
+        var aConcat = a.type+a.label;
+        var bConcat = b.type+b.label;
+
+        if (aConcat.toLowerCase() === bConcat.toLowerCase()) {
+          resultColor = 0;
+        }
+        resultColor = aConcat.toLowerCase() < bConcat.toLowerCase() ? -1 : 1;
+        return resultColor;
+
+      },
+      _computeFilter: function(filterBy) {
+
+        console.log("_computeFilter");
+        console.log(filterBy);
+
+        if (filterBy) {
+
+          // If filterBy is 'all', return a filter that always returns
+          // the todo
+          if (filterBy === 'all') {
+            return function(item) {
+              return item;
+            };
+          }
+
+          return function(item) {
+            return item.type === filterBy;
+          };
+        }
+      },
+      handleTrack: function(e) {
+
+        if(!this.trackInfo) {
+            this.trackInfo = {};
+        }
+
+        var message;
+
+        switch(e.detail.state) {
+          case 'start':
+            this.set('ismoving', false);
+            message = 'Tracking started!';
+
+            this.trackInfo.start = {
+              x : e.detail.x,
+              y : e.detail.y,
+            };
+
+            break;
+          case 'track':
+            message = 'Tracking in progress... ' +
+              e.detail.x + ', ' + e.detail.y;
+            this.trackInfo.progress = {
+              x : e.detail.x,
+              y : e.detail.y,
+            };
+
+            break;
+          case 'end':
+            message = 'Tracking ended!';
+            this.trackInfo.end = {
+              x : e.detail.x,
+              y : e.detail.y,
+            };
+
+            break;
+        }
+
+        this.calcTrack(e);
+
+      },
+      calcTrack : function(e) {
+
+        if(this.trackInfo && this.trackInfo.start && this.trackInfo.progress) {
+
+          var diffY = Math.abs(this.trackInfo.progress.y - this.trackInfo.start.y);
+          var diffX = Math.abs(this.trackInfo.progress.x - this.trackInfo.start.x);
+
+          if(diffY < diffX) {
+
+            if(this.trackInfo.start.x > this.trackInfo.progress.x) {
+
+              var percent = diffX/$(this).width();
+              var left = (150*percent);
+
+              if(left > 10) {
+                left = 10;
+              }
+
+              if(diffX > 100) {
+                this.move('right');
+              }
+
+            } else if(this.trackInfo.start.x < this.trackInfo.progress.x) {
+
+              var percent = diffX/$(this).width();
+              var left = -50+(150*percent);
+
+              if(left > 10) {
+                left = 10;
+              }
+
+              if(diffX > 100) {
+                
+                this.move('left');
+
+              }
+            }
+
+          } else {
+
+            if(this.trackInfo.start.y > this.trackInfo.progress.y) {
+              /*
+                $(this).css({
+                  'margin-top' : diffY,
+                });   
+              */ 
+              if(diffY > 100) {
+                console.log('slide top');                
+              }
+            } else if(this.trackInfo.start.y < this.trackInfo.progress.y) {
+              /*
+                $(this).css({
+                  'margin-bottom' : diffY,
+                });
+              */
+              if(diffY > 100) {
+                console.log('slide bottom');
+              }
+            }
+
+          }
+        }
+
+        if(e.detail.state == 'end') {
+            this.trackInfo = {};
+        }
+
+      },
+      move : function(dir) {
+
+        if(!this.ismoving) {
+          this.set('ismoving', true);
+          console.log('move '+dir);
+
+          var indexFilter = this.listType.indexOf(this['filter-by']);
+
+          if(indexFilter < 0 ) {
+            return true;
+          }
+
+          console.log(this['filter-by']);
+          console.log(this.listType);
+          console.log(indexFilter);
+
+          if(dir == 'left') {
+            indexFilter--;
+
+          }
+          if(dir == 'right') {
+            indexFilter++;
+          }
+
+          if(indexFilter < 0) {
+            indexFilter = this.listType.length-1;
+          }
+
+          if(indexFilter > this.listType.length-1) {
+            indexFilter = 0;
+          }
+
+          console.log(indexFilter);
+          console.log(this.listType[indexFilter]);
+          this.set('filter-by', this.listType[indexFilter]);
+        }
+
+      }
+    });
+  </script>
+</dom-module>
